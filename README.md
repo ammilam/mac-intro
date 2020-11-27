@@ -1,4 +1,4 @@
-## WIP - Monitoring as Code (MaC) Implementation
+## WIP - Monitoring as Code (MaC) & k8s CI/CD Implementation
 
 ## Purpose
 This repo attempts to lay a general framework to play with a MaC Implementation and is broken down into the following parts...
