@@ -16,6 +16,9 @@ spec:
           patch:
             enabled: false
     grafana:
+      grafana.ini:
+        auth.anonymous:
+            enabled: true
       service:
         type: LoadBalancer
     prometheus:

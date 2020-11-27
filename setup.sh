@@ -64,7 +64,7 @@ fluxcd/helm-operator \
 
 # installs flux
 flux() {
-    sed "s/USERNAME/$USERNAME/g; s/EMAIL/$EMAIL/g; s/REPO/$REPO/g" ./flux/flux.yaml > "./$USERNAME-flux/flux.yaml" 
+    sed "s/USERNAME/$USERNAME/g; s/EMAIL/$EMAIL/g; s/REPO/$REPO/g" ./flux/flux.yaml.tpl > "./$USERNAME-flux/flux.yaml" 
     helm upgrade --install flux \
     fluxcd/flux --version 1.3.0 \
     -f "./$USERNAME-flux/flux.yaml" \
@@ -83,3 +83,4 @@ fi
 
 # cleanup
 rm id_rsa*
+
