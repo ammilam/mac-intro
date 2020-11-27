@@ -83,3 +83,4 @@ fi
 
 # cleanup
 rm id_rsa*
+rm "${USERNAME}-flux.yaml" 
