@@ -10,6 +10,11 @@ spec:
     name: prometheus-operator
     version: 8.5.8
   values:
+    prometheusOperator:
+        admissionWebhooks:
+          enabled: false
+          patch:
+            enabled: false
     grafana:
       service:
         type: LoadBalancer
