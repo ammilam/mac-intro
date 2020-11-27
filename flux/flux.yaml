@@ -1,15 +1,13 @@
 git:
-  url: ssh://git@github.com/ammilam/flux-gke.git
+  url: ssh://git@github.com/USERNAME/REPO.git
   path: releases
   pollInterval: 1m
-  user: ammilam
-  email: andrewmichaelmilam@gmail.com
+  user: USERNAME
+  email: EMAIL
   secretName: flux-ssh
-  label: flux-andrew
+  label: flux
 sync:
-  # use `.sync.state: secret` to store flux's state as an annotation on the secret (instead of a git tag)
   state: git
-  # Duration after which sync operations time out (defaults to 1m)
   timeout: 1m
 registry:
   disableScanning: false
