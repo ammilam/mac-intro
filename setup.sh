@@ -68,28 +68,15 @@ fluxcd/helm-operator \
  -n flux
 
 # installs flux
-flux() {
-    sed "s/USERNAME/$USERNAME/g; s/EMAIL/$EMAIL/g; s/REPO/$REPO/g" ./flux/flux.yaml.tpl > "./$USERNAME-flux/flux.yaml" 
-    helm upgrade --install flux \
-    fluxcd/flux --version 1.3.0 \
-    -f "./$USERNAME-flux/flux.yaml" \
-    -n flux
-}
-if [[ ! -d "$USERNAME-flux" ]]
-then
-    mkdir "$USERNAME-flux"
-    flux
-fi
-if [[ "$USERNAME-flux" ]]
-then
-    sed "s/USERNAME/$USERNAME/g; s/EMAIL/$EMAIL/g; s/REPO/$REPO/g" ./flux/flux.yaml > "./$USERNAME-flux/flux.yaml" 
-    flux
-fi
+sed "s/USERNAME/$USERNAME/g; s/EMAIL/$EMAIL/g; s/REPO/$REPO/g" ./templates/flux.yaml > "./flux/flux.yaml" 
+helm upgrade --install flux \
+fluxcd/flux --version 1.3.0 \
+-f "./flux/flux.yaml" \
+-n flux
+
 
 # cleanup
 rm id_rsa*
 
-# creates executable to be used to generate configmaps from grafana dashboards created in the UI
-export IP=$(kubectl get svc/prometheus-operator-grafana -n monitoring -o json|jq -r '.status.loadBalancer.ingress[].ip')
-echo "The Grafana Public IP Address Is: $IP"
-sed "s/IP/$IP/g" ./grafana-as-code/dashboards/dash-configmap.sh.tpl > ./grafana-as-code/dashboards/dash-configmap.sh| chmod +x ./grafana-as-code/dashboards/dash-configmap.sh
+echo "to setup grafana dashboards and notifiers as code executables"
+echo "run ./grafana-as-code/setup-grafana-executables.sh"
