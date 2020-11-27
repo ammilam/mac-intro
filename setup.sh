@@ -13,14 +13,12 @@ export EMAIL=$(git config --get user.email)
 # creates gcp project to use for example
 echo "Creating a GCP Project from /terraform-resources/gcp_project.tf"
 echo ""
-cd terraform-resources
 terraform init
 sleep 5
 terraform apply -auto-approve
 sleep 5
+export CLUSTER_NAME="gitlab"
 export PROJECT=$(cat terraform.tfstate|jq -r '.outputs.project.value')
-cd ..
-gcloud config set project $PROJECT
 
 basename=$(basename $URL)
 re="^(https|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+).git$"
@@ -33,24 +31,12 @@ echo "Git is configured for $USERNAME on the $REPO repository."
 echo ""
 
 ## sets k8s cluster name and gcp specific variables
-read -p "Enter a k8s cluster name: " NAME
-echo ""
-read -p "Enter a zone [us-west1/us-east1/us-central1]: " ZONE
-echo ""
-if [[ -z $ZONE ]]
-then
-    export ZONE="us-central1"
-fi
-
-echo "GCP zone set to $ZONE"
-echo ""
-
+#read -p "Enter a k8s cluster name: " NAME
 
 # k8s cluster creation/management
 ## creates gke cluster in current DEVSHELL gcp project
-gcloud container --project $PROJECT clusters create $NAME --region "${ZONE}-c"
 
-gcloud container clusters get-credentials $NAME --region "${ZONE}-c" --project $PROJECT
+gcloud container clusters get-credentials $CLUSTER_NAME --zone us-central1 --project $PROJECT
 
 ## sets current gcp user as cluster admin 
 kubectl create clusterrolebinding cluster-admin-binding \
@@ -94,13 +80,3 @@ rm id_rsa*
 echo ""
 echo "Run ./grafana-as-code/setup-grafana-executables.sh to setup grafana dashboards and notifiers as code executables"
 echo ""
-
-# this installs the Gitlab GKE cluster
-echo "Now installing Gitlab..."
-echo "note - this portion of the install is lengthy."
-mkdir gitlab
-cd gitlab
-git clone https://github.com/terraform-google-modules/terraform-google-gke-gitlab.git
-cd terraform-google-gke-gitlab
-terraform init
-terraform apply -auto-approve  -var "project_id=$PROJECT" -var "certmanager_email=$EMAIL"
