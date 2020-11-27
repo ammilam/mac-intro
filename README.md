@@ -9,7 +9,9 @@ This repo attempts to lay a general framework to play with a MaC Implementation 
 - GCP Alerts/Monitoring Implementation
 - GCP Dashboard Auto Provisioning
 
-
+## But really? Why cloud monitoring as code?
+Cloud resources are meant to be expendable, being spun up/down at will (pets vs cattle) while also being provisioned with speed and precision. This is achieved in an organizationally standardized and repeatable manner as code while also being made more widely available to more teams through merge requests with governance/approval processes.
+In the end, managing infrastructure as code allows cloud resources to be dynamic, follow an enterprise standard, have governance at all levels by SMEs, have versioning, and be better prepared for a disaster.
 
 ## Before You Begin
 In order to install the example Mac implementation, you must have access to a GCP Project, and either [Cloud Shell](https://cloud.google.com/shell) or [CloudSDK](https://cloud.google.com/sdk/docs/quickstart)
