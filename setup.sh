@@ -3,7 +3,10 @@
 # sets environment variables
 
 ## git specific configs are set dynamically
+read -p "enter a github personal access token: " TOKEN
 URL=$(git config --get remote.origin.url)
+EMAIL=$(git config --get user.email)
+
 basename=$(basename $URL)
 re="^(https|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+).git$"
 if [[ $URL =~ $re ]]; then    
@@ -49,14 +52,41 @@ kubectl create secret generic flux-ssh --from-file=identity=./id_rsa -n flux
 ## adds the deploy key created above to the github repo
 curl -s \
 -X POST \
--H "Authorization: token $(cat token)" \
+-H "Authorization: token ${TOKEN}" \
 "Accept: application/vnd.github.v3+json" \
 "https://api.github.com/repos/$USERNAME/$REPO/keys" \
 -d "{\"key\":\"$(cat ./id_rsa.pub)\"}"
 
+cat <<EOF >>./flux/values.yaml
+git:
+  url: ssh://git@github.com/$USERNAME/$REPO.git
+  path: releases
+  pollInterval: 1m
+  user: $USERNAME
+  email: $EMAIL
+  secretName: flux-ssh
+  label: flux-$USERNAME
+sync:
+  # use `.sync.state: secret` to store flux's state as an annotation on the secret (instead of a git tag)
+  state: git
+  # Duration after which sync operations time out (defaults to 1m)
+  timeout: 1m
+registry:
+  disableScanning: false
+syncGarbageCollection:
+  enabled: true
+EOF
+
 ## installs flux and helm operator that will kick off and manage the terraria server deployment
-./flux/installFlux.sh
-./flux/installHelmOperator.sh
+helm upgrade --install flux \
+fluxcd/flux --version 1.3.0 \
+-f ./flux/flux.yaml \
+-n flux
+
+helm upgrade --install helm-operator --version 1.0.2 \
+fluxcd/helm-operator \
+ -f ./flux/helmOperator.yaml \
+ -n flux
 
 
 # cleanup
