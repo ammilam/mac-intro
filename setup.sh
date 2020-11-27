@@ -28,15 +28,16 @@ if [[ -z $ZONE ]]
 then
     export ZONE="us-central1"
 fi
+
 echo "gcp zone set to $ZONE"
 echo ""
 
 
 # k8s cluster creation/management
 ## creates gke cluster in current DEVSHELL gcp project
-gcloud container --project $PROJECT clusters create $NAME --zone $ZONE
+gcloud container --project $PROJECT clusters create $NAME --region "${ZONE}-c"
 
-gcloud container clusters get-credentials $NAME --zone $ZONE --project $PROJECT
+gcloud container clusters get-credentials $NAME --region "${ZONE}-c" --project $PROJECT
 
 ## sets current gcp user as cluster admin 
 kubectl create clusterrolebinding cluster-admin-binding \
