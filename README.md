@@ -1,6 +1,6 @@
 ## WIP - Monitoring as Code (MaC) Implementation
 
-### Purpose
+## Purpose
 This repo attempts to lay a general framework to play with a MaC Implementation and is broken down into the following parts...
 
 - GKE Cluster Creation
@@ -9,8 +9,18 @@ This repo attempts to lay a general framework to play with a MaC Implementation 
 - GCP Alerts/Monitoring Implementation
 - GCP Dashboard Auto Provisioning
 
-### Usage
-To get started, simply fork this repo and clone locally and execute the following:
+
+
+## Before You Begin
+In order to install the example Mac implementation, you must have access to a GCP Project, and either [Cloud Shell](https://cloud.google.com/shell) or [CloudSDK](https://cloud.google.com/sdk/docs/quickstart)
+
+- This requires that you a google cloud project to work with. Google offers a free tier of GCP (one per each Gmail account) that equates to $300 of free resources -> [link to sign up for gcp trial](https://cloud.google.com/free)
+
+- Since this uses GCP as the cloud provider, you must have Google CloudSDK installed -> [quickstart link](https://cloud.google.com/sdk/docs/quickstart)
+
+
+## Getting Started
+To get started, simply fork this repo, clone locally, and execute the following:
 
 ```bash
 ./setup.sh
