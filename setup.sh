@@ -5,7 +5,7 @@
 ## gcp project variable
 PROJECT=$(gcloud config list --format json|jq -r '.core.project')
 ## git specific configs are set dynamically
-read -p "enter a github personal access token: " TOKEN
+read -p "Enter a github personal access token: " TOKEN
 URL=$(git config --get remote.origin.url)
 EMAIL=$(git config --get user.email)
 
@@ -16,7 +16,7 @@ if [[ $URL =~ $re ]]; then
     REPO=${BASH_REMATCH[5]}
 fi
 echo ""
-echo "git is configured for $USERNAME on the $REPO repository."
+echo "Git is configured for $USERNAME on the $REPO repository."
 echo ""
 
 ## sets k8s cluster name and gcp specific variables
@@ -29,7 +29,7 @@ then
     export ZONE="us-central1"
 fi
 
-echo "gcp zone set to $ZONE"
+echo "GCP zone set to $ZONE"
 echo ""
 
 
