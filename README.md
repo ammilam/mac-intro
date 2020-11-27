@@ -13,4 +13,4 @@ Simply fork this repo and clone locally and execute the following:
 
 `./setup.sh`
 
-You will be expected to provide a [Github Persional Access Token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) - so one handy.
+You will be expected to provide a [Github Persional Access Token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) - so have one handy.
