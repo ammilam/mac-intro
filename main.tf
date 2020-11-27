@@ -1,5 +1,4 @@
 provider "google" {
-project_id = google_project.mac_example.project_id
 }
 
 provider "google-beta" {
