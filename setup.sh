@@ -87,4 +87,4 @@ rm id_rsa*
 # creates executable to be used to generate configmaps from grafana dashboards created in the UI
 export IP=$(kubectl get svc/prometheus-operator-grafana -n monitoring -o json|jq -r '.status.loadBalancer.ingress[].ip')
 echo "The Grafana Public IP Address Is: $IP"
-sed "s/IP/$IP/g" ./dashboards/dash-configmap.sh.tpl > ./dashboards/dash-configmap.sh| chmod +x ./dashboards/dash-configmap.sh
+sed "s/IP/$IP/g" ./grafana-as-code/dashboards/dash-configmap.sh.tpl > ./grafana-as-code/dashboards/dash-configmap.sh| chmod +x ./grafana-as-code/dashboards/dash-configmap.sh
