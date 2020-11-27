@@ -3,9 +3,10 @@
 ## Purpose
 This repo attempts to lay a general framework to play with a MaC Implementation and is broken down into the following parts...
 
-- GKE Cluster Creation
+- Example App & Prom Stack GKE Cluster Creation
 - Flux (Gitops for  k8s) Installation -> installs various k8s resources
 - Grafana Dashboarding/Alerts/Notifiers as Code Implementation
+- Gitlab GKE Cluster Installation by framework created in [terraform-google-gke-gitlab](https://github.com/terraform-google-modules/terraform-google-gke-gitlab) module
 - WIP -> GCP Alerts/Monitoring Implementation
 - WIP -> GCP Dashboard Auto Provisioning
 
@@ -31,6 +32,8 @@ To get started, simply fork this repo, clone locally, and execute the following:
 This will create a GKE cluster and hook up flux CI/CD to the forked Github repo and deploy the releses contained under `/releases`
 
 At this portion of the install, you will be expected to provide a [Github Persional Access Token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) - so have one handy.
+
+
 
 
 

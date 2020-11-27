@@ -68,7 +68,7 @@ fluxcd/helm-operator \
  -n flux
 
 # installs flux
-sed "s/USERNAME/$USERNAME/g; s/EMAIL/$EMAIL/g; s/REPO/$REPO/g" ./templates/flux.yaml > "./flux/flux.yaml" 
+sed "s/USERNAME/$USERNAME/g; s/EMAIL/$EMAIL/g; s/REPO/$REPO/g" ./templates/flux.yaml.tpl > "./flux/flux.yaml" 
 helm upgrade --install flux \
 fluxcd/flux --version 1.3.0 \
 -f "./flux/flux.yaml" \
@@ -80,3 +80,10 @@ rm id_rsa*
 
 echo ""
 echo "Run ./grafana-as-code/setup-grafana-executables.sh to setup grafana dashboards and notifiers as code executables"
+echo ""
+
+# this installs the Gitlab GKE cluster
+# echo "Now installing Gitlab..."
+# echo "note - this portion of the install is lengthy."
+# terraform init ./gitlab
+# terraform apply ./gitlab -var "project_id=$PROJECT" -auto-approve
