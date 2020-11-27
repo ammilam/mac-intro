@@ -1,7 +1,7 @@
 ## WIP - Monitoring as Code (MaC) & k8s Gitops Implementation
 
 ## Purpose
-This repo attempts to lay a general framework to play with a MaC Implementation and is broken down into the following parts...
+This repo attempts to lay a general framework to play with a MaC implementation, as well as a kubernetes Gitops implementation, and is broken down into the following parts...
 
 - Example App & Prom Stack GKE Cluster Creation
 - Flux (Gitops for  k8s) Installation -> installs various k8s resources
@@ -15,7 +15,7 @@ Cloud resources are meant to be expendable, being spun up/down at will (pets vs 
 In the end, managing infrastructure as code allows cloud resources to be dynamic, follow an enterprise standard, have governance at all levels by SMEs, have versioning, and be better prepared for a disaster.
 
 ## Before You Begin
-In order to install the example Mac implementation, you must have access to a GCP Project, and either [Cloud Shell](https://cloud.google.com/shell) or [CloudSDK](https://cloud.google.com/sdk/docs/quickstart)
+In order to install get going with this example implementation, you must have access to a GCP Project, and either [Cloud Shell](https://cloud.google.com/shell) or [CloudSDK](https://cloud.google.com/sdk/docs/quickstart)
 
 - This requires that you a google cloud project to work with. Google offers a free tier of GCP (one per each Gmail account) that equates to $300 of free resources -> [link to sign up for gcp trial](https://cloud.google.com/free)
 
