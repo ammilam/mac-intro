@@ -31,7 +31,6 @@ echo ""
 export REGION="${ZONE}-c"
 
 # k8s cluster creation/management
-
 ## creates gke cluster in current DEVSHELL gcp project
 gcloud container --project $DEVSHELL_PROJECT_ID clusters create $NAME --region $REGION
 
@@ -57,30 +56,11 @@ curl -s \
 "https://api.github.com/repos/$USERNAME/$REPO/keys" \
 -d "{\"key\":\"$(cat ./id_rsa.pub)\"}"
 
-cat <<EOF >>./flux/values.yaml
-git:
-  url: ssh://git@github.com/$USERNAME/$REPO.git
-  path: releases
-  pollInterval: 1m
-  user: $USERNAME
-  email: $EMAIL
-  secretName: flux-ssh
-  label: flux-$USERNAME
-sync:
-  # use `.sync.state: secret` to store flux's state as an annotation on the secret (instead of a git tag)
-  state: git
-  # Duration after which sync operations time out (defaults to 1m)
-  timeout: 1m
-registry:
-  disableScanning: false
-syncGarbageCollection:
-  enabled: true
-EOF
-
-## installs flux and helm operator that will kick off and manage the terraria server deployment
+## installs flux and helm operator that will kick off and manage the k8s helm charts
+sed "s/USERNAME/$USERNAME/g; s/EMAIL/$EMAIL/g; s/REPO/$REPO/g" ./flux/flux.yaml > "${USERNAME}-flux.yaml" 
 helm upgrade --install flux \
 fluxcd/flux --version 1.3.0 \
--f ./flux/flux.yaml \
+-f "${USERNAME}-flux.yaml" \
 -n flux
 
 helm upgrade --install helm-operator --version 1.0.2 \
@@ -91,3 +71,4 @@ fluxcd/helm-operator \
 
 # cleanup
 rm id_rsa*
+rm "${USERNAME}-flux.yaml" 
