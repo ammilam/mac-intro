@@ -3,6 +3,7 @@
 ## Purpose
 This repo attempts to lay a general framework to play with a MaC implementation, as well as a kubernetes Gitops implementation, and is broken down into the following parts...
 
+- GCP Project Creation (terraform) `/terraform-resources/gcp_project.tf`
 - Example App & Prom Stack GKE Cluster Creation
 - Flux (Gitops for  k8s) Installation -> installs various k8s resources
 - Grafana Dashboarding/Alerts/Notifiers as Code Implementation
