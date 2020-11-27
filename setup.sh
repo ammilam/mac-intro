@@ -78,5 +78,5 @@ fluxcd/flux --version 1.3.0 \
 # cleanup
 rm id_rsa*
 
-echo "to setup grafana dashboards and notifiers as code executables"
-echo "run ./grafana-as-code/setup-grafana-executables.sh"
+echo ""
+echo "Run ./grafana-as-code/setup-grafana-executables.sh to setup grafana dashboards and notifiers as code executables"
