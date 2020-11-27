@@ -2,6 +2,8 @@
 
 # sets environment variables
 
+## gcp project variable
+PROJECT=$(gcloud config list --format json|jq -r '.core.project')
 ## git specific configs are set dynamically
 read -p "enter a github personal access token: " TOKEN
 URL=$(git config --get remote.origin.url)
@@ -28,11 +30,13 @@ then
 fi
 echo "gcp zone set to $ZONE"
 echo ""
-export REGION="${ZONE}-c"
+
 
 # k8s cluster creation/management
 ## creates gke cluster in current DEVSHELL gcp project
-gcloud container --project $DEVSHELL_PROJECT_ID clusters create $NAME --region $REGION
+gcloud container --project $PROJECT clusters create $NAME --zone $ZONE
+
+gcloud container clusters get-credentials $NAME --zone $ZONE --project $PROJECT
 
 ## sets current gcp user as cluster admin 
 kubectl create clusterrolebinding cluster-admin-binding \
