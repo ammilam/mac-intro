@@ -1,10 +1,10 @@
-## WIP - Monitoring as Code (MaC) & k8s CI/CD Implementation
+## WIP - Monitoring as Code (MaC) & k8s Gitops Implementation
 
 ## Purpose
 This repo attempts to lay a general framework to play with a MaC Implementation and is broken down into the following parts...
 
 - GKE Cluster Creation
-- Flux (ci/cd for k8s) Installation -> installs various k8s resources
+- Flux (Gitops for  k8s) Installation -> installs various k8s resources
 - Grafana Dashboarding/Alerts/Notifiers as Code Implementation
 - WIP -> GCP Alerts/Monitoring Implementation
 - WIP -> GCP Dashboard Auto Provisioning
