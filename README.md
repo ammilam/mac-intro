@@ -6,8 +6,8 @@ This repo attempts to lay a general framework to play with a MaC Implementation 
 - GKE Cluster Creation
 - Flux CI/CD Installation -> installs various k8s resources
 - Grafana Dashboarding/Alerts/Notifiers as Code Implementation
-- GCP Alerts/Monitoring Implementation
-- GCP Dashboard Auto Provisioning
+- WIP -> GCP Alerts/Monitoring Implementation
+- WIP -> GCP Dashboard Auto Provisioning
 
 ## But really? Why cloud monitoring as code?
 Cloud resources are meant to be expendable, being spun up/down at will (pets vs cattle) while also being provisioned with speed and precision. This is achieved in an organizationally standardized and repeatable manner as code while also being made more widely available to more teams through merge requests with governance/approval processes.
