@@ -1,3 +1,4 @@
 dash-configmap.sh
 test.sh
 token
+.terraform*

@@ -1,13 +1,26 @@
 #! /bin/bash
 
-# sets environment variables
+echo "This installation takes place in a few parts..."
+echo ""
 
-## gcp project variable
-PROJECT=$(gcloud config list --format json|jq -r '.core.project')
+# sets environment variables
 ## git specific configs are set dynamically
 read -p "Enter a github personal access token: " TOKEN
-URL=$(git config --get remote.origin.url)
-EMAIL=$(git config --get user.email)
+export URL=$(git config --get remote.origin.url)
+export EMAIL=$(git config --get user.email)
+
+
+# creates gcp project to use for example
+echo "Creating a GCP Project from /terraform-resources/gcp_project.tf"
+echo ""
+cd terraform-resources
+terraform init
+sleep 5
+terraform apply -auto-approve
+sleep 5
+export PROJECT=$(cat terraform.tfstate|jq -r '.outputs.project.value')
+cd ..
+gcloud config set project $PROJECT
 
 basename=$(basename $URL)
 re="^(https|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+).git$"
@@ -83,7 +96,11 @@ echo "Run ./grafana-as-code/setup-grafana-executables.sh to setup grafana dashbo
 echo ""
 
 # this installs the Gitlab GKE cluster
-# echo "Now installing Gitlab..."
-# echo "note - this portion of the install is lengthy."
-# terraform init ./gitlab
-# terraform apply ./gitlab -var "project_id=$PROJECT" -auto-approve
+echo "Now installing Gitlab..."
+echo "note - this portion of the install is lengthy."
+mkdir gitlab
+cd gitlab
+git clone https://github.com/terraform-google-modules/terraform-google-gke-gitlab.git
+cd terraform-google-gke-gitlab
+terraform init
+terraform apply -auto-approve  -var "project_id=$PROJECT" -var "certmanager_email=$EMAIL"
