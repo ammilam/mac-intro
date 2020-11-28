@@ -3,11 +3,11 @@
 ## Purpose
 This repo attempts to lay a general framework to play with a MaC implementation, as well as a kubernetes Gitops implementation, and is broken down into the following parts...
 
-- GCP Project Creation (terraform) `/terraform-resources/gcp_project.tf`
-- Example App & Prom Stack GKE Cluster Creation
-- Flux (Gitops for  k8s) Installation -> installs various k8s resources
+- GKE (Google Kubernetes Engine) Cluster Creation by Terraform
+- Installation of Gitlab in GKE using  the [terraform-google-gke-gitlab](https://github.com/terraform-google-modules/terraform-google-gke-gitlab) module
+- Installation of flux/helm-operator to implement k8s Gitops
+- Flux automated deployment of prometheus-stack (prometheus/alertmanager/grafana) and other k8s resources
 - Grafana Dashboarding/Alerts/Notifiers as Code Implementation
-- Gitlab GKE Cluster Installation by framework created in [terraform-google-gke-gitlab](https://github.com/terraform-google-modules/terraform-google-gke-gitlab) module
 - WIP -> GCP Alerts/Monitoring Implementation
 - WIP -> GCP Dashboard Auto Provisioning
 
@@ -24,15 +24,25 @@ In order to install get going with this example implementation, you must have ac
 
 
 ## Getting Started
-To get started, simply fork this repo, clone locally, and execute the following:
+### Setting Up GKE / Gitlab / Flux / Helm Operator
+To kick this off  simply fork this repo, clone locally, and execute the following:
 
 ```bash
 ./setup.sh
 ```
 
-This will create a GKE cluster and hook up flux CI/CD to the forked Github repo and deploy the releses contained under `/releases`
+This will create a GKE cluster, deploy Gitlab, and hook up [flux](https://fluxcd.io/) to the forked Github repo and deploy the releses contained under `/releases`
 
-At this portion of the install, you will be expected to provide a [Github Persional Access Token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) - so have one handy.
+*Please Note*: you will be expected to provide a [Github Persional Access Token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) - so have one handy.
+
+#### Managing Flux Post Install
+To manage flux post installation, edit `flux.yaml` located under `/flux` with new configurations. Refer to this [documentation](https://github.com/fluxcd/flux/blob/master/chart/flux/values.yaml) for flux values.yaml config settings.
+```bash
+./flux/installFlux.sh
+
+```
+
+
 
 
 
