@@ -1,25 +1,25 @@
 
 provider "google" {
-  version = "~> 3.39.0"
 }
 
 provider "google-beta" {
-  version = "~> 3.39.0"
+}
+
+resource "random_id" "suffix" {
+  byte_length = 2
 }
 
 module "gke-gitlab" {
-  source            = "git::github.com/ammilam/terraform-google-gke-gitlab"
-  project_id        = "${var.project_id}"
-  certmanager_email = "no-reply@${var.project_id}.example.com"
-  cluster_name      = "${var.cluster_name}"
-  gitlab_db_name = "${var.cluster_name}-db"
-  gitlab_db_random_prefix = true
+  source                = "git::https://github.com/ammilam/terraform-google-gke-gitlab.git"
+  project_id            = "${var.project_id}"
+  certmanager_email     = "no-reply@${var.project_id}.example.com"
+  cluster_name          = "${var.cluster_name}"
+  gitlab_db_name        = "${var.cluster_name}-${random_id.suffix.hex}"
+  helm_chart_version    = "4.2.4"
+  gitlab_runner_install = true
+  region                = "us-east1"
 }
 
-output "cluster_name" {
-    value = module.gke-gitlab.cluster_name
-}
-
-output "gitlab_url" {
-  value = "${module.gke-gitlab.gitlab_url}"
-}
+#output "location" {
+#    value = "${module.gke-gitlab.region}"
+#}
