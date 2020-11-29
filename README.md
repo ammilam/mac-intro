@@ -46,7 +46,12 @@ This will create a GKE cluster, deploy Gitlab, and hook up [flux](https://fluxcd
 *Please Note*: you will be expected to provide a [Github Persional Access Token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) - so have one handy.
 
 ### Altering Gitlab Configs
-Gitlab is deployed by a helm chart during the setup process above. Configuration changes can be made to the values.yaml file under `/gitlab-gke-module/variables.yaml.tpl`. For information on supported settings refer to this [documentation](https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/values.yaml)
+Gitlab is deployed by helm chart during the setup process above. Configuration changes can be made to the values.yaml file under `/gitlab-gke-module/variables.yaml.tpl`. For information on supported settings refer to this [documentation](https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/values.yaml)
+
+Once changes have been made to `/gitlab-gke-module/variables.yaml.tpl`, sync the changes by re-running:
+```bash 
+./setup.sh
+```
 
 
 ### Managing Flux Post Install
