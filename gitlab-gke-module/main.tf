@@ -370,7 +370,7 @@ resource "helm_release" "gitlab" {
   version      = var.helm_chart_version
   timeout      = 1200
   wait         = false
-  force_update = true
+  force_update = "true"
 
   values = [data.template_file.helm_values.rendered]
 

@@ -3,18 +3,19 @@ global:
   edition: ce
   hosts:
     domain: ${DOMAIN}
-    https: true
+    https: false
     gitlab: {}
     externalIP: ${INGRESS_IP}
     ssh: ~
 
   ## doc/charts/globals.md#configure-ingress-settings
   ingress:
+    tls:
+        secretName: gitlab-secret
+
     configureCertmanager: true
     enabled: true
-    tls:
-      enabled: false
-
+    
   ## doc/charts/globals.md#configure-postgresql-settings
   psql:
     password:
@@ -81,6 +82,10 @@ redis:
   install: false
 
 gitlab:
+  webservice:
+    ingress:
+      tls:
+        secretName: gitlab-secret
   gitaly:
     persistence:
       size: 200Gi
@@ -115,3 +120,5 @@ registry:
     secret: gitlab-registry-storage
     key: storage
     extraKey: gcs.json
+  tls:
+    secretName: gitlab-secret
