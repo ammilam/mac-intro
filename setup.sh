@@ -4,8 +4,9 @@
 export PROJECT="$(gcloud config get-value project)"
 echo "Your current configured gcloud project is $PROJECT"
 echo ""
-
-echo "Terraform can be buggy at times. If the setup errors out, simply run again."
+echo "Note! This will take some time to deploy and gitlab takes time to completely come up."
+echo "Prepare to be wating at least 30 minutes from start to finish."
+sleep 2
 echo ""
 
 # sets git specific variables
@@ -28,6 +29,7 @@ then
 fi
 echo "Your Git user.email global variable is set to : $EMAIL"
 echo ""
+sleep 2
 TOKEN=$(cat token)
 if [[ -z $TOKEN ]]
 then
@@ -45,6 +47,8 @@ if [[ -f './terraform.tfstate' ]]
 then
     export NAME="$(cat terraform.tfstate|jq -r '.outputs.cluster_name.value')"
     echo "Your existing cluster is called $NAME"
+    echo ""
+    sleep 2
 fi
 
 # creates gcp project to use for example
@@ -66,18 +70,21 @@ fi
 echo ""
 echo "Git is configured for user $USERNAME on the $REPO repository."
 echo ""
+sleep 2
 
 # gets k8s cluster name and generates credentials
 export REGION=$(cat terraform.tfstate|jq -r '.outputs.location.value')
 
 echo "Getting kubeconfig for the GKE cluster..."
 echo ""
+sleep 2
 gcloud container clusters get-credentials $NAME --zone $REGION --project $PROJECT -q
 echo ""
 
 # sets current gcp user as cluster admin 
 echo "Setting current user as cluster admin"
 echo ""
+sleep 2
 kubectl create clusterrolebinding cluster-admin-binding \
 --clusterrole cluster-admin \
 --user $(gcloud config get-value account)
@@ -91,6 +98,7 @@ if [[ -z $ns ]]
 then
     echo "Creating flux namespace"
     echo ""
+    sleep 2
     kubectl create namespace flux
     echo ""
 fi
@@ -101,6 +109,7 @@ if [[ -z $s ]]
 then
     echo "Generating k8s secret for flux and creating a corresponding Github deploy key at github.com/repos/${USERNAME}/${REPO}/keys..."
     echo ""
+    sleep 2
     ssh-keygen -t rsa -N '' -f ./id_rsa -C flux-ssh <<< y
     kubectl create secret generic flux-ssh --from-file=identity=./id_rsa -n flux
 
@@ -116,6 +125,7 @@ fi
 # installs helm-operator to manage helmreleases
 echo "Installing helm-operator in the flux namespace"
 echo ""
+sleep 2
 helm upgrade --install helm-operator --version 1.0.2 \
 fluxcd/helm-operator \
  -f ./flux/helmOperator.yaml \
@@ -125,6 +135,7 @@ echo ""
 # installs flux
 echo "Creating flux values.yaml file from template as ./flux/flux.yaml"
 echo ""
+sleep 2
 sed "s/USERNAME/$USERNAME/g; s/EMAIL/$EMAIL/g; s/REPO/$REPO/g" ./templates/flux.yaml.tpl > "./flux/flux.yaml" 
 echo 
 helm upgrade --install flux \
