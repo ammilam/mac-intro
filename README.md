@@ -50,6 +50,7 @@ Gitlab is deployed by helm chart during the setup process above. Configuration c
 
 Once changes have been made to `/gitlab-gke-module/variables.yaml.tpl`, sync the changes by re-running:
 ```bash 
+# this will sync settings to the cluster, including Gitlab changes
 ./setup.sh
 ```
 
