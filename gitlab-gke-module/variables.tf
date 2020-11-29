@@ -22,8 +22,7 @@ variable "cluster_name" {
 
 variable "gke_machine_type" {
   description = "Machine type used for the node-pool"
-  default     = "e2-medium"
-  #default.   = "n1-standard-4"
+  default   = "n1-standard-4"
 }
 
 variable "gitlab_db_name" {
