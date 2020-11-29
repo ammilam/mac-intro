@@ -18,10 +18,11 @@ In the end, managing infrastructure as code allows cloud resources to be dynamic
 ## Before You Begin
 In order to install get going with this example implementation, you must have access to a GCP Project, and either [Cloud Shell](https://cloud.google.com/shell) or [CloudSDK](https://cloud.google.com/sdk/docs/quickstart)
 
-- This requires that you a google cloud project to work with. Google offers a free tier of GCP (one per each Gmail account) that equates to $300 of free resources -> [link to sign up for gcp trial](https://cloud.google.com/free)
+- This requires that you have a google cloud project to work with. Google offers a free tier of GCP (one per each Gmail account) that equates to $300 of free resources. Signing up for this will require a credit/debit card for account creation and managment purposes, but know this will never charge your card. Any trial started is automatically deactivated when you run out of the $300 free credit -> [link to sign up for gcp trial](https://cloud.google.com/free)
 
-- Since this uses GCP as the cloud provider, you must have Google CloudSDK installed -> [quickstart link](https://cloud.google.com/sdk/docs/quickstart)
+- Since this uses GCP as the cloud provider, you must use [Cloud Shell](https://cloud.google.com/shell/docs) to run these commands (reccomended), or have Google CloudSDK installed locally -> [quickstart link](https://cloud.google.com/sdk/docs/quickstart)
 
+Note: I recommend running this through Cloud Shell from within GCP as mentioned above. If you absolutely must run this locally, you must have [helm](https://helm.sh/docs/intro/install/) and [terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli) installed and access to a linux os/subsystem.
 
 ## Getting Started
 ### Setting Up GKE / Gitlab / Flux / Helm Operator
@@ -44,14 +45,17 @@ This will create a GKE cluster, deploy Gitlab, and hook up [flux](https://fluxcd
 
 *Please Note*: you will be expected to provide a [Github Persional Access Token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) - so have one handy.
 
-#### Managing Flux Post Install
+### Altering Gitlab Configs
+Gitlab is deployed by a helm chart during the setup process above. Configuration changes can be made to the values.yaml file under `/gitlab-gke-module/variables.yaml.tpl`. For information on supported settings refer to this [documentation](https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/values.yaml)
+
+
+### Managing Flux Post Install
 Flux automatically syncs k8s resources and helm chart by means of helm-operator & helmrelease definitons.
 
 To manage flux post installation, edit `flux.yaml` located under `/flux` with new configurations. Refer to this [documentation](https://github.com/fluxcd/flux/blob/master/chart/flux/values.yaml) for flux values.yaml config settings.
 ```bash
 # bash script that simply does an update/install of the flux chart
 ./flux/installFlux.sh
-
 ```
 
 #### Managing Helm-Operator Post Install
@@ -59,7 +63,6 @@ To manage helm-operator post installation, edit `helmOperator.yaml` located unde
 ```bash
 # bash script that simply does an update/install of the helm-operator chart
 ./flux/installHelmOperator.sh
-
 ```
 
 

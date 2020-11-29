@@ -1,6 +1,7 @@
 #! /bin/bash
 
 # gcp project
+echo ""
 export PROJECT="$(gcloud config get-value project)"
 echo "Your current configured gcloud project is $PROJECT"
 echo ""
