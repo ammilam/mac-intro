@@ -83,13 +83,17 @@ gcloud container clusters get-credentials $NAME --zone $REGION --project $PROJEC
 echo ""
 
 # sets current gcp user as cluster admin 
-echo "Setting current user as cluster admin"
-echo ""
-sleep 2
-kubectl create clusterrolebinding cluster-admin-binding \
---clusterrole cluster-admin \
---user $(gcloud config get-value account)
-echo ""
+crb=$(kubectl get clusterrolebinding cluster-admin-binding)
+if [[ -z $crb ]]
+then
+    echo "Setting current user as cluster admin"
+    echo ""
+    sleep 2
+    kubectl create clusterrolebinding cluster-admin-binding \
+    --clusterrole cluster-admin \
+    --user $(gcloud config get-value account)
+    echo ""
+fi
 
 # creates the flux namespace (if it doesnt exist)
 ns=$(kubectl get ns|grep flux)

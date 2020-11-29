@@ -13,7 +13,7 @@ global:
     configureCertmanager: true
     enabled: true
     tls:
-      enabled: true
+      enabled: false
 
   ## doc/charts/globals.md#configure-postgresql-settings
   psql:
