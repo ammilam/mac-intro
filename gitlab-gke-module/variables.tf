@@ -22,7 +22,7 @@ variable "cluster_name" {
 
 variable "gke_machine_type" {
   description = "Machine type used for the node-pool"
-  default     = "n1-standard-4"
+  default     = "e2-medium"
 }
 
 variable "gitlab_db_name" {
@@ -56,21 +56,21 @@ variable "region" {
 }
 
 variable "gitlab_nodes_subnet_cidr" {
-  default     = "10.0.0.0/16"
+  default     = "1172.18.0.0/28"
   description = "Cidr range to use for gitlab GKE nodes subnet"
 }
 
 variable "gitlab_pods_subnet_cidr" {
-  default     = "10.3.0.0/16"
+  default     = "172.17.0.0/28"
   description = "Cidr range to use for gitlab GKE pods subnet"
 }
 
 variable "gitlab_services_subnet_cidr" {
-  default     = "10.2.0.0/16"
+  default     = "172.16.0.0/28"
   description = "Cidr range to use for gitlab GKE services subnet"
 }
 variable "helm_chart_version" {
   type        = string
-  default     = "4.6.0"
+  default     = "4.2.4"
   description = "Helm chart version to install during deployment"
 }

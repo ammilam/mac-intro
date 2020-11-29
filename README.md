@@ -25,10 +25,19 @@ In order to install get going with this example implementation, you must have ac
 
 ## Getting Started
 ### Setting Up GKE / Gitlab / Flux / Helm Operator
+
 To kick this off  simply fork this repo, clone locally, and execute the following:
 
 ```bash
+# configure git user variables
+git config --global user.email "EMAIL"
+git config --global user.name "USERNAME"
+
+# setup GKE cluster, Gitlab, flux/helm-operator, and prometheus stack
 ./setup.sh
+
+# terminal will prompt for a github personal access token.
+Enter a github personal access token:
 ```
 
 This will create a GKE cluster, deploy Gitlab, and hook up [flux](https://fluxcd.io/) to the forked Github repo and deploy the releses contained under `/releases`
@@ -36,12 +45,22 @@ This will create a GKE cluster, deploy Gitlab, and hook up [flux](https://fluxcd
 *Please Note*: you will be expected to provide a [Github Persional Access Token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) - so have one handy.
 
 #### Managing Flux Post Install
+Flux automatically syncs k8s resources and helm chart by means of helm-operator & helmrelease definitons.
+
 To manage flux post installation, edit `flux.yaml` located under `/flux` with new configurations. Refer to this [documentation](https://github.com/fluxcd/flux/blob/master/chart/flux/values.yaml) for flux values.yaml config settings.
 ```bash
+# bash script that simply does an update/install of the flux chart
 ./flux/installFlux.sh
 
 ```
 
+#### Managing Helm-Operator Post Install
+To manage helm-operator post installation, edit `helmOperator.yaml` located under `/flux` with new configurations. Refer to this [documentation](https://github.com/fluxcd/helm-operator/blob/master/chart/helm-operator/values.yaml) for helm-operator values.yaml config settings.
+```bash
+# bash script that simply does an update/install of the helm-operator chart
+./flux/installHelmOperator.sh
+
+```
 
 
 
