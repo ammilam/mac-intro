@@ -63,7 +63,7 @@ echo "Git is configured for $USERNAME on the $REPO repository."
 echo ""
 
 # gets k8s cluster name and generates credentials
-export GITLAB_URL=$(cat terraform.tfstate|jq -r '.outputs.region.value')
+export REGION=$(cat terraform.tfstate|jq -r '.outputs.location.value')
 
 gcloud container clusters get-credentials $NAME --zone $REGION --project $PROJECT -q
 
