@@ -53,7 +53,12 @@ Once changes have been made to `/gitlab-gke-module/variables.yaml.tpl`, sync the
 # this will sync settings to the cluster, including Gitlab changes
 ./setup.sh
 ```
-
+### Managing Helm-Operator Post Install
+To manage helm-operator post installation, edit `helmOperator.yaml` located under `/flux` with new configurations. Refer to this [documentation](https://github.com/fluxcd/helm-operator/blob/master/chart/helm-operator/values.yaml) for helm-operator values.yaml config settings.
+```bash
+# bash script that simply does an update/install of the helm-operator chart
+./flux/installHelmOperator.sh
+```
 
 ### Managing Flux Post Install
 Flux automatically syncs k8s resources and helm chart by means of helm-operator & helmrelease definitons.
@@ -64,12 +69,8 @@ To manage flux post installation, edit `flux.yaml` located under `/flux` with ne
 ./flux/installFlux.sh
 ```
 
-#### Managing Helm-Operator Post Install
-To manage helm-operator post installation, edit `helmOperator.yaml` located under `/flux` with new configurations. Refer to this [documentation](https://github.com/fluxcd/helm-operator/blob/master/chart/helm-operator/values.yaml) for helm-operator values.yaml config settings.
-```bash
-# bash script that simply does an update/install of the helm-operator chart
-./flux/installHelmOperator.sh
-```
+### Deploying New Kubernetes  Resources / HelmRelease Using Flux & Helm-Operator
+In order to update/create a new [HelmRelease](https://docs.fluxcd.io/projects/helm-operator/en/1.0.0-rc9/references/helmrelease-custom-resource.html), or deploy Kubernetes resources (namespace/deployment/pod/etc), a resource definition will need to be placed under the `/releases` directory at the root of this repository. Once merged to main/master, flux will automatically sync the changes with the GKE cluster on a 1 minute sync loop.
 
 
 
