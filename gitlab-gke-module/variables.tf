@@ -13,7 +13,7 @@ variable "certmanager_email" {
 
 variable "gke_version" {
   description = "Version of GKE to use for the GitLab cluster"
-  default     = "1.16"
+  default     = "1.16.13-gke.404"
 }
 
 variable "cluster_name" {
@@ -23,6 +23,7 @@ variable "cluster_name" {
 variable "gke_machine_type" {
   description = "Machine type used for the node-pool"
   default     = "e2-medium"
+  #default.   = "n1-standard-4"
 }
 
 variable "gitlab_db_name" {
