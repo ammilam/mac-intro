@@ -158,5 +158,5 @@ fi
 echo ""
 export GITLAB_URL=$(kubectl get ingress gitlab-webservice -o json|jq -r ".spec.rules[].host")
 export GITLAB_PASS=$(kubectl get secret gitlab-gitlab-initial-root-password -o go-template='{{ .data.password }}' | base64 -d && echo)
-echo "The Gitlab Address is http://${GITLAB_URL}/"
+echo "The Gitlab Address is https://${GITLAB_URL}/"
 echo "The Gitlab Root Password is $GITLAB_PASS"
