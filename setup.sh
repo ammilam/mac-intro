@@ -81,11 +81,14 @@ echo ""
 sleep 2
 gcloud container clusters get-credentials $NAME --zone $REGION --project $PROJECT -q
 echo ""
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=fake.gitlab.com"
-kubectl create secret tls my-secret --key="tls.key" --cert="tls.crt"
-rm tls.*
-crb=$(kubectl get clusterrolebinding cluster-admin-binding)
-if [[ -z $crb ]]
+if [[ -z $(kubectl get secrets -o json|jq -r '.items[].metadata.name'|grep my-secret) ]]
+then
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=fake.gitlab.com"
+    kubectl create secret tls my-secret --key="tls.key" --cert="tls.crt"
+    rm tls.*
+fi
+
+if [[ -z $(kubectl get clusterrolebinding cluster-admin-binding) ]]
 then
     echo "Setting current user as cluster admin"
     echo ""
@@ -97,10 +100,9 @@ then
 fi
 
 # creates the flux namespace (if it doesnt exist)
-ns=$(kubectl get ns|grep flux)
 helm repo add stable https://kubernetes-charts.storage.googleapis.com/
 helm repo add fluxcd https://charts.fluxcd.io
-if [[ -z $ns ]]
+if [[ -z $(kubectl get ns|grep flux) ]]
 then
     echo "Creating flux namespace"
     echo ""
@@ -110,8 +112,7 @@ then
 fi
 
 # creates the ssh key used for a deploy key on the repo and then creates a related k8s secret
-s=$(kubectl get secrets -n flux|grep flux-ssh)
-if [[ -z $s ]]
+if [[ -z $(kubectl get secrets -n flux|grep flux-ssh) ]]
 then
     echo "Generating k8s secret for flux and creating a corresponding Github deploy key at github.com/repos/${USERNAME}/${REPO}/keys..."
     echo ""
