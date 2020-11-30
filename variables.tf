@@ -16,6 +16,10 @@ variable "gke_version" {
   default     = "1.16"
 }
 
+variable "gcp_account" {
+  description = "Email address you are logging into GCP with"
+}
+
 variable "cluster_name" {
   type = string
 }
