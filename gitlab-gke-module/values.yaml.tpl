@@ -10,7 +10,7 @@ global:
 
   ## doc/charts/globals.md#configure-ingress-settings
   ingress:
-    configureCertmanager: false
+    configureCertmanager: true
     enabled: true
     tls:
       enabled: true
@@ -83,12 +83,9 @@ redis:
 
 gitlab:
   gitaly:
-    tls:
-      enabled: true
-      secretName: my-secret
     persistence:
-      size: 100Gi
-      storageClass: standard
+      size: 200Gi
+      storageClass: "pd-ssd"
   task-runner:
     backups:
       objectStorage:
@@ -104,7 +101,7 @@ postgresql:
 gitlab-runner:
   install: ${GITLAB_RUNNER_INSTALL}
   rbac:
-    create: false
+    create: true
   runners:
     locked: false
     cache:
