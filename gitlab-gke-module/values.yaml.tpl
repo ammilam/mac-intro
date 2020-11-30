@@ -7,9 +7,6 @@ global:
     gitlab: {}
     externalIP: ${INGRESS_IP}
     ssh: ~
-    tls:
-      enabled: true
-      secretName: my-cert
 
   ## doc/charts/globals.md#configure-ingress-settings
   ingress:
@@ -17,8 +14,7 @@ global:
     enabled: true
     tls:
       enabled: true
-      secretName: my-cert
-
+      secretName: my-secret
 
   ## doc/charts/globals.md#configure-postgresql-settings
   psql:
@@ -87,9 +83,12 @@ redis:
 
 gitlab:
   gitaly:
+    tls:
+      enabled: true
+      secretName: my-secret
     persistence:
-      size: 200Gi
-      storageClass: "pd-ssd"
+      size: 100Gi
+      storageClass: standard
   task-runner:
     backups:
       objectStorage:
@@ -105,7 +104,7 @@ postgresql:
 gitlab-runner:
   install: ${GITLAB_RUNNER_INSTALL}
   rbac:
-    create: true
+    create: false
   runners:
     locked: false
     cache:

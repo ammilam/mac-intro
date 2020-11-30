@@ -81,8 +81,9 @@ echo ""
 sleep 2
 gcloud container clusters get-credentials $NAME --zone $REGION --project $PROJECT -q
 echo ""
-
-# sets current gcp user as cluster admin 
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=fake.gitlab.com"
+kubectl create secret tls my-secret --key="tls.key" --cert="tls.crt"
+rm tls.*
 crb=$(kubectl get clusterrolebinding cluster-admin-binding)
 if [[ -z $crb ]]
 then
