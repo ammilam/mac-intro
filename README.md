@@ -18,7 +18,7 @@ In the end, managing infrastructure as code allows cloud resources to be dynamic
 ## Before You Begin
 In order to install get going with this example implementation, you must have access to a GCP Project, and either [Cloud Shell](https://cloud.google.com/shell) or [CloudSDK](https://cloud.google.com/sdk/docs/quickstart)
 
-- This requires that you have a google cloud project to work with. Google offers a free tier of GCP (one per each Gmail account) that equates to $300 of free resources. Signing up for this will require a credit/debit card for account creation and managment purposes, but know this will never charge your card. Any trial started is automatically deactivated when you run out of the $300 free credit -> [link to sign up for gcp trial](https://cloud.google.com/free)
+- This requires that you have a google cloud project to work with. Google offers a free tier of GCP (one per each Gmail account) that equates to $300 of free resources. Signing up for this will require a credit/debit card for account creation and managment purposes, that being said... this will never charge your card. Any trial started is automatically deactivated when you run out of the $300 free credit -> [link to sign up for gcp trial](https://cloud.google.com/free)
 
 - Since this uses GCP as the cloud provider, you must use [Cloud Shell](https://cloud.google.com/shell/docs) to run these commands (reccomended), or have Google CloudSDK installed locally -> [quickstart link](https://cloud.google.com/sdk/docs/quickstart)
 
