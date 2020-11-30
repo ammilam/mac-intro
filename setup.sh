@@ -36,7 +36,7 @@ if [[ -z $TOKEN ]]
 then
     # prompts for github personal access token
     read -p "Enter a github personal access token: " TOKEN
-    
+
 fi
 
 # checks if terraform state file exists, if it does - sets the cluster_name to the output in the state file
@@ -64,7 +64,7 @@ sleep 5
 # sets regex for parsing git specifics to configure flux values.yaml
 basename=$(basename $URL)
 re="^(https|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+).git$"
-if [[ $URL =~ $re ]]; then    
+if [[ $URL =~ $re ]]; then
     USERNAME=${BASH_REMATCH[4]}
     REPO=${BASH_REMATCH[5]}
 fi
@@ -143,8 +143,8 @@ echo ""
 echo "Creating flux values.yaml file from template as ./flux/flux.yaml"
 echo ""
 sleep 2
-sed "s/USERNAME/$USERNAME/g; s/EMAIL/$EMAIL/g; s/REPO/$REPO/g" ./templates/flux.yaml.tpl > "./flux/flux.yaml" 
-echo 
+sed "s/USERNAME/$USERNAME/g; s/EMAIL/$EMAIL/g; s/REPO/$REPO/g" ./templates/flux.yaml.tpl > "./flux/flux.yaml"
+echo
 helm upgrade --install flux \
 fluxcd/flux --version 1.3.0 \
 -f "./flux/flux.yaml" \
@@ -162,6 +162,7 @@ export GITLAB_URL=$(kubectl get ingress gitlab-webservice -o json|jq -r ".spec.r
 export GITLAB_PASS=$(kubectl get secret gitlab-gitlab-initial-root-password -o go-template='{{ .data.password }}' | base64 -d && echo)
 echo "The Gitlab Address is https://${GITLAB_URL}/
       The Gitlab Root Password is $GITLAB_PASS"
-sed "s/GITLAB_URL/$GITLAB_URL/g; s/GITLAB_PASS/$GITLAB_PASS/g" ./templates/gitlab_instance.tpl > "./gitlab_instance" 
-
+sed "s/GITLAB_URL/$GITLAB_URL/g; s/GITLAB_PASS/$GITLAB_PASS/g" ./templates/gitlab_instance.tpl > "./gitlab_instance"
+echo "The Gitlab URL and Password have been stored under ./gitlab_instance
+      Be sure to delete this file during cleanup."
 

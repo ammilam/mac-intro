@@ -2,3 +2,4 @@ dash-configmap.sh
 test.sh
 token
 .terraform*
+terraform.tfstate*
