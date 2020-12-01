@@ -28,9 +28,23 @@ then
     sleep 2
     exit 0
 fi
+
 echo "Your Git user.email global variable is set to : $EMAIL"
 echo ""
 sleep 2
+
+basename=$(basename $URL)
+re="^(https|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+).git$"
+if [[ $URL =~ $re ]]; then
+    USERNAME=${BASH_REMATCH[4]}
+    REPO=${BASH_REMATCH[5]}
+fi
+echo ""
+echo "Git is configured for user $USERNAME on the $REPO repository."
+echo ""
+sleep 2
+
+
 TOKEN=$(cat token)
 if [[ -z $TOKEN ]]
 then
@@ -54,24 +68,16 @@ fi
 
 # creates gcp project to use for example
 echo ""
+helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+helm repo add fluxcd https://charts.fluxcd.io
 helm repo add gitlab https://charts.gitlab.io
 helm repo update
+terraform fmt --recursive
 terraform init
 sleep 5
-terraform apply -var "certmanager_email=${EMAIL}" -var "cluster_name=${NAME}" -var "project_id=${PROJECT}" -auto-approve
+terraform apply -var "repo=${REPO}" -var "github_token=${TOKEN}" -var "username=${USERNAME}" -var "certmanager_email=${EMAIL}" -var "cluster_name=${NAME}" -var "project_id=${PROJECT}" -auto-approve
 sleep 5
 
-# sets regex for parsing git specifics to configure flux values.yaml
-basename=$(basename $URL)
-re="^(https|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+).git$"
-if [[ $URL =~ $re ]]; then
-    USERNAME=${BASH_REMATCH[4]}
-    REPO=${BASH_REMATCH[5]}
-fi
-echo ""
-echo "Git is configured for user $USERNAME on the $REPO repository."
-echo ""
-sleep 2
 
 # gets k8s cluster name and generates credentials
 export REGION=$(cat terraform.tfstate|jq -r '.outputs.location.value')
@@ -100,8 +106,7 @@ then
 fi
 
 # creates the flux namespace (if it doesnt exist)
-helm repo add stable https://kubernetes-charts.storage.googleapis.com/
-helm repo add fluxcd https://charts.fluxcd.io
+
 if [[ -z $(kubectl get ns|grep flux) ]]
 then
     echo "Creating flux namespace"
@@ -109,52 +114,6 @@ then
     sleep 2
     kubectl create namespace flux
     echo ""
-fi
-
-# creates the ssh key used for a deploy key on the repo and then creates a related k8s secret
-if [[ -z $(kubectl get secrets -n flux|grep flux-ssh) ]]
-then
-    echo "Generating k8s secret for flux and creating a corresponding Github deploy key at github.com/repos/${USERNAME}/${REPO}/keys..."
-    echo ""
-    sleep 2
-    ssh-keygen -t rsa -N '' -f ./id_rsa -C flux-ssh <<< y
-    kubectl create secret generic flux-ssh --from-file=identity=./id_rsa -n flux
-
-    ## adds the deploy key created above to the github repo
-    curl -s \
-    -X POST \
-    -H "Authorization: token ${TOKEN}" \
-    "Accept: application/vnd.github.v3+json" \
-    "https://api.github.com/repos/${USERNAME}/${REPO}/keys" \
-    -d "{\"key\":\"$(cat ./id_rsa.pub)\"}"
-fi
-
-# installs helm-operator to manage helmreleases
-echo "Installing helm-operator in the flux namespace"
-echo ""
-sleep 2
-helm upgrade --install helm-operator --version 1.0.2 \
-fluxcd/helm-operator \
- -f ./flux/helmOperator.yaml \
- -n flux
-echo ""
-
-# installs flux
-echo "Creating flux values.yaml file from template as ./flux/flux.yaml"
-echo ""
-sleep 2
-sed "s/USERNAME/$USERNAME/g; s/EMAIL/$EMAIL/g; s/REPO/$REPO/g" ./templates/flux.yaml.tpl > "./flux/flux.yaml"
-echo
-helm upgrade --install flux \
-fluxcd/flux --version 1.3.0 \
--f "./flux/flux.yaml" \
--n flux
-
-
-# cleanup
-if [[ -f id_rsa ]]
-then
-    rm id_rsa*
 fi
 
 echo ""

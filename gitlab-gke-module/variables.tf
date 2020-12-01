@@ -7,6 +7,7 @@ variable "domain" {
   default     = ""
 }
 
+
 variable "certmanager_email" {
   description = "Email used to retrieve SSL certificates from Let's Encrypt"
 }
@@ -22,7 +23,7 @@ variable "cluster_name" {
 
 variable "gke_machine_type" {
   description = "Machine type used for the node-pool"
-  default   = "n1-standard-4"
+  default     = "n1-standard-4"
 }
 
 variable "gitlab_db_name" {
