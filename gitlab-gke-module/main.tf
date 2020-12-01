@@ -345,7 +345,6 @@ locals {
 
 data "template_file" "helm_values" {
   template = "${file("${path.module}/values.yaml.tpl")}"
-
   vars = {
     DOMAIN                = local.domain
     INGRESS_IP            = local.gitlab_address
