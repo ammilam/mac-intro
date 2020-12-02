@@ -1,9 +1,9 @@
 git:
-  url: ssh://git@github.com/${USERNAME}/${REPO}.git
+  url: ssh://git@github.com/ammilam/mac-intro.git
   path: releases
   pollInterval: 1m
-  user: ${USERNAME}
-  email: ${EMAIL}
+  user: ammilam
+  email: andrewmichaelmilam@gmail.com
   secretName: flux-ssh
   label: flux
 sync:

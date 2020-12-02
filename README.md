@@ -40,6 +40,10 @@ git config --global user.name "USERNAME"
 # terminal will prompt for a github personal access token.
 Enter a github personal access token:
 ```
+Note: If you see the error below, rerun `./setup.sh`
+```bash
+Error: Post "https://35.226.37.144/api/v1/namespaces/flux/secrets": dial tcp 35.226.37.144:443: i/o timeout```
+
 
 This will create a GKE cluster, deploy Gitlab, and hook up [flux](https://fluxcd.io/) to the forked Github repo and deploy the releses contained under `/releases`
 

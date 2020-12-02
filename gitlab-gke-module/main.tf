@@ -357,8 +357,8 @@ data "template_file" "helm_values" {
 }
 
 resource "time_sleep" "sleep_for_cluster_fix_helm_6361" {
-  create_duration  = "180s"
-  destroy_duration = "180s"
+  create_duration  = "300s"
+  destroy_duration = "300s"
   depends_on       = [module.gke.endpoint, google_sql_database.gitlabhq_production]
 }
 
@@ -367,7 +367,7 @@ resource "helm_release" "gitlab" {
   repository   = "https://charts.gitlab.io"
   chart        = "gitlab"
   version      = var.helm_chart_version
-  timeout      = 1200
+  timeout      = 1400
   wait         = false
   force_update = "true"
 

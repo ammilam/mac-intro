@@ -50,7 +50,8 @@ if [[ -z $TOKEN ]]
 then
     # prompts for github personal access token
     read -p "Enter a github personal access token: " TOKEN
-
+        cat <<EOF >>token $TOKEN 
+EOF
 fi
 
 # checks if terraform state file exists, if it does - sets the cluster_name to the output in the state file
