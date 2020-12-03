@@ -53,6 +53,7 @@ resource "kubernetes_secret" "flux_ssh" {
   data = {
     "identity" = "${tls_private_key.mac_deploy_key.private_key_pem}"
   }
+  depends_on = [tls_private_key.mac_deploy_key]
 }
 
 
@@ -62,7 +63,7 @@ resource "helm_release" "helm_operator" {
   repository   = "https://charts.fluxcd.io"
   chart        = "helm-operator"
   version      = "1.2.0"
-  timeout      = 1200
+  timeout      = "1200"
   wait         = false
   force_update = "true"
 

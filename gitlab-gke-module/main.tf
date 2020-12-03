@@ -357,8 +357,8 @@ data "template_file" "helm_values" {
 }
 
 resource "time_sleep" "sleep_for_cluster_fix_helm_6361" {
-  create_duration  = "300s"
-  destroy_duration = "300s"
+  create_duration  = "400s"
+  destroy_duration = "400s"
   depends_on       = [module.gke.endpoint, google_sql_database.gitlabhq_production]
 }
 
@@ -367,8 +367,8 @@ resource "helm_release" "gitlab" {
   repository   = "https://charts.gitlab.io"
   chart        = "gitlab"
   version      = var.helm_chart_version
-  timeout      = 1400
-  wait         = false
+  timeout      = 1600
+  wait         = true
   force_update = "true"
 
   values = [data.template_file.helm_values.rendered]
@@ -381,3 +381,26 @@ resource "helm_release" "gitlab" {
   ]
 }
 
+func resourceExampleInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+    name := d.Get("name").(string)
+    client := meta.(*ExampleClient)
+    resp, err := client.CreateInstance(name)
+
+    if err != nil {
+        return fmt.Errorf("timeout", err)
+    }
+
+    return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+        resp, err := client.DescribeInstance(name)
+
+        if err != nil {
+            return resource.NonRetryableError(fmt.Errorf("timeout", err))
+        }
+
+        if resp.Status != "CREATED" {
+            return resource.RetryableError(fmt.Errorf("Expected instance to be created but was in state %s", resp.Status))
+        }
+
+        return resource.NonRetryableError(resourceExampleInstanceRead(d, meta))
+    })
+}
