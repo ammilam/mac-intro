@@ -380,27 +380,3 @@ resource "helm_release" "gitlab" {
     time_sleep.sleep_for_cluster_fix_helm_6361,
   ]
 }
-
-func resourceExampleInstanceCreate(d *schema.ResourceData, meta interface{}) error {
-    name := d.Get("name").(string)
-    client := meta.(*ExampleClient)
-    resp, err := client.CreateInstance(name)
-
-    if err != nil {
-        return fmt.Errorf("timeout", err)
-    }
-
-    return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-        resp, err := client.DescribeInstance(name)
-
-        if err != nil {
-            return resource.NonRetryableError(fmt.Errorf("timeout", err))
-        }
-
-        if resp.Status != "CREATED" {
-            return resource.RetryableError(fmt.Errorf("Expected instance to be created but was in state %s", resp.Status))
-        }
-
-        return resource.NonRetryableError(resourceExampleInstanceRead(d, meta))
-    })
-}
