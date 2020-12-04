@@ -1,4 +1,4 @@
-## WIP - Monitoring as Code (MaC) & k8s Gitops Implementation
+# WIP - Monitoring as Code (MaC) & k8s Gitops Implementation
 
 ## Purpose
 This repo attempts to lay a general framework to play with a MaC implementation, as well as a kubernetes Gitops implementation, and is broken down into the following parts...
@@ -11,9 +11,11 @@ This repo attempts to lay a general framework to play with a MaC implementation,
 - WIP -> GCP Alerts/Monitoring Implementation
 - WIP -> GCP Dashboard Auto Provisioning
 
+
 ## But really? Why cloud monitoring as code?
 Cloud resources are meant to be expendable, being spun up/down at will (pets vs cattle) while also being provisioned with speed and precision. This is achieved in an organizationally standardized and repeatable manner as code while also being made more widely available to more teams through merge requests with governance/approval processes.
 In the end, managing infrastructure as code allows cloud resources to be dynamic, follow an enterprise standard, have governance at all levels by SMEs, have versioning, and be better prepared for a disaster.
+
 
 ## Before You Begin
 In order to install get going with this example implementation, you must have access to a GCP Project, and either [Cloud Shell](https://cloud.google.com/shell) or [CloudSDK](https://cloud.google.com/sdk/docs/quickstart)
@@ -30,7 +32,7 @@ Note: I recommend running this through Cloud Shell from within GCP as mentioned 
 To kick this off  simply fork this repo, clone locally, and execute the following:
 
 ```bash
-# configure git user variables
+# configure git user variables (enter your name and the account associated with github)
 git config --global user.email "EMAIL"
 git config --global user.name "USERNAME"
 
@@ -40,19 +42,18 @@ git config --global user.name "USERNAME"
 # terminal will prompt for a github personal access token.
 Enter a github personal access token:
 ```
----
+
 **Note:** If you see the error below, rerun `./setup.sh`
 
 ```bash
 Error: Post "https://35.226.37.144/api/v1/namespaces/flux/secrets": dial tcp 35.226.37.144:443: i/o timeout
 ```
 
----
-
 This will create a GKE cluster, deploy Gitlab, and hook up [flux](https://fluxcd.io/) to the forked Github repo and deploy the releses contained under `/releases`
 
-*Please Note*: you will be expected to provide a [Github Persional Access Token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) - so have one handy.
+**Please Note:** you will be expected to provide a [Github Persional Access Token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) - so have one handy.
 
+## Maintaining Resources
 ### Altering Gitlab Configs
 Gitlab is deployed by helm chart during the setup process above. Configuration changes can be made to the values.yaml file under `/gitlab-gke-module/variables.yaml.tpl`. For information on supported settings refer to this [documentation](https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/values.yaml)
 
@@ -65,7 +66,7 @@ Once changes have been made to `/gitlab-gke-module/variables.yaml.tpl`, sync the
 To manage helm-operator post installation, edit `helmOperator.yaml` located under `/flux` with new configurations. Refer to this [documentation](https://github.com/fluxcd/helm-operator/blob/master/chart/helm-operator/values.yaml) for helm-operator values.yaml config settings.
 ```bash
 # bash script that simply does an update/install of the helm-operator chart
-./flux/installHelmOperator.sh
+./flux-install/installHelmOperator.sh
 ```
 
 ### Managing Flux Post Install
@@ -74,12 +75,13 @@ Flux automatically syncs k8s resources and helm chart by means of helm-operator 
 To manage flux post installation, edit `flux.yaml` located under `/flux` with new configurations. Refer to this [documentation](https://github.com/fluxcd/flux/blob/master/chart/flux/values.yaml) for flux values.yaml config settings.
 ```bash
 # bash script that simply does an update/install of the flux chart
-./flux/installFlux.sh
+./flux-install/installFlux.sh
 ```
 
 ### Deploying New Kubernetes  Resources / HelmRelease Using Flux & Helm-Operator
 In order to update/create a new [HelmRelease](https://docs.fluxcd.io/projects/helm-operator/en/1.0.0-rc9/references/helmrelease-custom-resource.html), or deploy Kubernetes resources (namespace/deployment/pod/etc), a resource definition will need to be placed under the `/releases` directory at the root of this repository. Once merged to main/master, flux will automatically sync the changes with the GKE cluster on a 1 minute sync loop.
 
+___
 
 
 
@@ -87,7 +89,4 @@ In order to update/create a new [HelmRelease](https://docs.fluxcd.io/projects/he
 
 
 
-
-#####
 Author: [Andrew Milam](https://www.linkedin.com/in/andrewmilam/)
-###

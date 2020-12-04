@@ -106,16 +106,6 @@ then
     echo ""
 fi
 
-# creates the flux namespace (if it doesnt exist)
-
-if [[ -z $(kubectl get ns|grep flux) ]]
-then
-    echo "Creating flux namespace"
-    echo ""
-    sleep 2
-    kubectl create namespace flux
-    echo ""
-fi
 
 echo ""
 export GITLAB_URL=$(kubectl get ingress gitlab-webservice -o json|jq -r ".spec.rules[].host")

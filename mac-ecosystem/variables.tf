@@ -2,19 +2,37 @@ variable "project_id" {
   description = "GCP Project to deploy resources"
 }
 
+variable "github_token" {
+  type        = string
+  description = "Github personal access token"
+}
 variable "domain" {
   description = "Domain for hosting gitlab functionality (ie mydomain.com would access gitlab at gitlab.mydomain.com)"
   default     = ""
 }
 
+variable "flux_version" {
+  default = "1.6.0"
+}
 
+variable "helm_operator_version" {
+  default = "1.1.0"
+}
+variable "repo" {
+  type        = string
+  description = "Github repo connected to flux"
+}
+variable "username" {
+  type        = string
+  description = "Github username"
+}
 variable "certmanager_email" {
   description = "Email used to retrieve SSL certificates from Let's Encrypt"
 }
 
 variable "gke_version" {
   description = "Version of GKE to use for the GitLab cluster"
-  default     = "1.16.13-gke.404"
+  default     = "1.16"
 }
 
 variable "cluster_name" {

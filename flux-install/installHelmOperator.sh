@@ -15,5 +15,5 @@
 # Helm install flux
 helm upgrade --install helm-operator --version 1.0.2 \
 fluxcd/helm-operator \
- -f ./flux/helmOperator.yaml \
+ -f ../moc-ecosystem/value-files/helmOperator.yaml \
  -n flux

@@ -3,6 +3,11 @@ provider "google" {
   project = var.project_id
 }
 
+provider "github" {
+  token = var.github_token
+  owner = var.username
+}
+
 provider "google-beta" {
   project = var.project_id
 }
@@ -253,7 +258,7 @@ module "gke" {
 
   node_pools = [
     {
-      name         = "gitlab"
+      name         = var.cluster_name
       autoscaling  = false
       machine_type = var.gke_machine_type
       node_count   = 1
@@ -343,8 +348,8 @@ locals {
   domain         = var.domain != "" ? var.domain : "${local.gitlab_address}.xip.io"
 }
 
-data "template_file" "helm_values" {
-  template = "${file("${path.module}/values.yaml.tpl")}"
+data "template_file" "gitlab_values" {
+  template = "${file("${path.module}/templates/values.yaml.tpl")}"
   vars = {
     DOMAIN                = local.domain
     INGRESS_IP            = local.gitlab_address
@@ -356,9 +361,15 @@ data "template_file" "helm_values" {
   }
 }
 
+resource "local_file" "gitlab_yaml" {
+  content    = data.template_file.gitlab_values.rendered
+  filename   = "${path.module}/values-files/gitlab-values.yaml"
+  depends_on = [kubernetes_namespace.flux]
+}
+
 resource "time_sleep" "sleep_for_cluster_fix_helm_6361" {
-  create_duration  = "400s"
-  destroy_duration = "400s"
+  create_duration  = "300s"
+  destroy_duration = "300s"
   depends_on       = [module.gke.endpoint, google_sql_database.gitlabhq_production]
 }
 
@@ -367,16 +378,118 @@ resource "helm_release" "gitlab" {
   repository   = "https://charts.gitlab.io"
   chart        = "gitlab"
   version      = var.helm_chart_version
-  timeout      = 1600
-  wait         = true
+  timeout      = "1600"
+  wait         = "false"
   force_update = "true"
 
-  values = [data.template_file.helm_values.rendered]
+  values = [data.template_file.gitlab_values.rendered]
 
   depends_on = [
     google_redis_instance.gitlab,
     google_sql_user.gitlab,
     kubernetes_storage_class.pd-ssd,
     time_sleep.sleep_for_cluster_fix_helm_6361,
+  ]
+}
+
+# creates flux values.yaml file
+data "template_file" "flux_yaml" {
+  template = "${file("${path.module}/templates/flux-values.yaml.tpl")}"
+
+  vars = {
+    EMAIL    = var.certmanager_email
+    USERNAME = var.username
+    REPO     = var.repo
+  }
+}
+
+# creates the flux values.yaml file from the redered data above
+resource "local_file" "flux_yaml" {
+  content    = data.template_file.flux_yaml.rendered
+  filename   = "${path.module}/values-files/flux-values.yaml"
+  depends_on = [kubernetes_namespace.flux, time_sleep.sleep_for_cluster_fix_helm_6361]
+}
+
+# creates key for flux & github 
+resource "tls_private_key" "mac_deploy_key" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+# creates public key in github
+resource "github_repository_deploy_key" "mac_intro_repo" {
+  title      = "Flux Key"
+  repository = "mac-intro"
+  key        = tls_private_key.mac_deploy_key.public_key_openssh
+  read_only  = "false"
+}
+
+resource "kubernetes_namespace" "flux" {
+  metadata {
+    name = "flux"
+  }
+  depends_on = [time_sleep.sleep_for_cluster_fix_helm_6361]
+}
+
+resource "kubernetes_namespace" "nginx" {
+  metadata {
+    name = "nginx"
+  }
+  depends_on = [time_sleep.sleep_for_cluster_fix_helm_6361]
+}
+
+
+resource "kubernetes_namespace" "monitoring" {
+  metadata {
+    name = "monitoring"
+  }
+  depends_on = [kubernetes_namespace.flux, time_sleep.sleep_for_cluster_fix_helm_6361]
+}
+
+# creates kubernetes secret for flux to pull changes from github and sync with gke
+resource "kubernetes_secret" "flux_ssh" {
+  metadata {
+    name      = "flux-ssh"
+    namespace = "flux"
+  }
+  data = {
+    "identity" = "${tls_private_key.mac_deploy_key.private_key_pem}"
+  }
+  depends_on = [kubernetes_namespace.flux, tls_private_key.mac_deploy_key, time_sleep.sleep_for_cluster_fix_helm_6361]
+}
+
+
+resource "helm_release" "helm_operator" {
+  name         = "helm-operator"
+  namespace    = "flux"
+  repository   = "https://charts.fluxcd.io"
+  chart        = "helm-operator"
+  version      = "1.2.0"
+  force_update = "true"
+
+  values = [
+    "${file("${path.module}/values-files/helmOperator.yaml")}",
+  ]
+  depends_on = [
+    kubernetes_secret.flux_ssh, kubernetes_namespace.flux, time_sleep.sleep_for_cluster_fix_helm_6361
+  ]
+}
+
+
+resource "helm_release" "fluxcd" {
+  name         = "flux"
+  repository   = "https://charts.fluxcd.io"
+  namespace    = "flux"
+  chart        = "flux"
+  version      = "1.6.0"
+  timeout      = "1200"
+  wait         = "true"
+  force_update = "true"
+
+  values = [
+    data.template_file.flux_yaml.rendered
+  ]
+  depends_on = [
+    kubernetes_secret.flux_ssh, local_file.flux_yaml, helm_release.helm_operator, kubernetes_namespace.flux, time_sleep.sleep_for_cluster_fix_helm_6361, kubernetes_namespace.monitoring
   ]
 }

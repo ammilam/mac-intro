@@ -1,8 +1,8 @@
-
 #! /bin/bash
+# this script is intended to clean up the resources created by the setup.sh
 REGION=$(cat terraform.tfstate|jq -r '.outputs.location.value')
 REPO=$(cat terraform.tfstate|jq -r '.outputs.repo.value')
-TOKEN=$(cat terraform.tfstate|jq -r '.outputs.github_token.value')
+TOKEN=$(cat token)
 USERNAME=$(cat terraform.tfstate|jq -r '.outputs.username.value')
 EMAIL=$(cat terraform.tfstate|jq -r '.outputs.email.value')
 NAME=$(cat terraform.tfstate|jq -r '.outputs.cluster_name.value')

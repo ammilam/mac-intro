@@ -26,17 +26,18 @@ spec:
         type: NodePort
         nodePort: 30090
       prometheusSpec:
-        containers:
-        - name: stackdriver-sidecar
-          image: gcr.io/stackdriver-prometheus/stackdriver-prometheus-sidecar:0.8.0
-          imagePullPolicy: Always
-          args:
-            - --stackdriver.project-id=${PROJECT_ID}
-            - --prometheus.wal-directory=/prometheus/wal
-          ports:
-            - name: stackdriver
-              containerPort: 9091
-          volumeMounts:
-            - name: prometheus-prometheus-operator-prometheus-db
-              mountPath: /prometheus
+        # uncomment to port prometheus metrics to stackdriver
+        # containers:
+        # - name: stackdriver-sidecar
+        #   image: gcr.io/stackdriver-prometheus/stackdriver-prometheus-sidecar:0.8.0
+        #   imagePullPolicy: Always
+        #   args:
+        #     - --stackdriver.project-id=${PROJECT_ID}
+        #     - --prometheus.wal-directory=/prometheus/wal
+        #   ports:
+        #     - name: stackdriver
+        #       containerPort: 9091
+        #   volumeMounts:
+        #     - name: prometheus-prometheus-operator-prometheus-db
+        #       mountPath: /prometheus
 
