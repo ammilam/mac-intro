@@ -40,6 +40,8 @@ global:
   appConfig:
     ## doc/charts/globals.md#general-application-settings
     enableUsagePing: false
+    initialDefaults:
+        signupEnabled: false
 
     ## doc/charts/globals.md#lfs-artifacts-uploads-packages
     backups:

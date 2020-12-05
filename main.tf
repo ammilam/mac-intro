@@ -11,5 +11,5 @@ module "mac-ecosystem" {
   username              = var.username
   repo                  = var.repo
   github_token          = var.github_token
-  gke_machine_type      = ""
+  gke_machine_type      = "e2-standard-4"
 }

@@ -2,10 +2,10 @@
 global:
   edition: ce
   hosts:
-    domain: 35.193.212.133.xip.io
+    domain: 34.121.243.205.xip.io
     https: true
     gitlab: {}
-    externalIP: 35.193.212.133
+    externalIP: 34.121.243.205
     ssh: ~
 
   ## doc/charts/globals.md#configure-ingress-settings
@@ -21,7 +21,7 @@ global:
     password:
       secret: gitlab-pg
       key: password
-    host: 10.1.0.3
+    host: 10.1.0.9
     port: 5432
     username: gitlab
     database: gitlabhq_production
@@ -29,7 +29,7 @@ global:
   redis:
     password:
       enabled: false
-    host: 10.51.18.100
+    host: 10.222.207.36
 
   ## doc/charts/globals.md#configure-minio-settings
   minio:
@@ -40,6 +40,8 @@ global:
   appConfig:
     ## doc/charts/globals.md#general-application-settings
     enableUsagePing: false
+    initialDefaults:
+        signupEnabled: false
 
     ## doc/charts/globals.md#lfs-artifacts-uploads-packages
     backups:

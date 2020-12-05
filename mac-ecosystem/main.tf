@@ -349,7 +349,7 @@ locals {
 }
 
 data "template_file" "gitlab_values" {
-  template = "${file("${path.module}/templates/values.yaml.tpl")}"
+  template = "${file("${path.module}/templates/gitlab-values.yaml.tpl")}"
   vars = {
     DOMAIN                = local.domain
     INGRESS_IP            = local.gitlab_address
@@ -468,7 +468,7 @@ resource "helm_release" "helm_operator" {
   force_update = "true"
 
   values = [
-    "${file("${path.module}/values-files/helmOperator.yaml")}",
+    "${file("${path.module}/values-files/helm-operator-values.yaml")}",
   ]
   depends_on = [
     kubernetes_secret.flux_ssh, kubernetes_namespace.flux, time_sleep.sleep_for_cluster_fix_helm_6361
@@ -488,6 +488,24 @@ resource "helm_release" "fluxcd" {
 
   values = [
     data.template_file.flux_yaml.rendered
+  ]
+  depends_on = [
+    kubernetes_secret.flux_ssh, local_file.flux_yaml, helm_release.helm_operator, kubernetes_namespace.flux, time_sleep.sleep_for_cluster_fix_helm_6361, kubernetes_namespace.monitoring
+  ]
+}
+
+resource "helm_release" "prom-stack" {
+  name         = "kube-prometheus-stack"
+  repository   = "https://prometheus-community.github.io/helm-charts"
+  namespace    = "monitoring"
+  chart        = "kube-prometheus-stack"
+  version      = "12.3.0"
+  timeout      = "1200"
+  wait         = "true"
+  force_update = "true"
+
+  values = [
+    "${file("${path.module}/values-files/prom-stack-values.yaml")}"
   ]
   depends_on = [
     kubernetes_secret.flux_ssh, local_file.flux_yaml, helm_release.helm_operator, kubernetes_namespace.flux, time_sleep.sleep_for_cluster_fix_helm_6361, kubernetes_namespace.monitoring
