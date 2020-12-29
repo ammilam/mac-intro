@@ -29,7 +29,6 @@ module "gke_auth" {
 
 provider "helm" {
   kubernetes {
-    load_config_file       = false
     cluster_ca_certificate = module.gke_auth.cluster_ca_certificate
     host                   = module.gke_auth.host
     token                  = module.gke_auth.token
@@ -40,7 +39,6 @@ resource "random_id" "suffix" {
   byte_length = 2
 }
 provider "kubernetes" {
-  load_config_file = false
 
   cluster_ca_certificate = module.gke_auth.cluster_ca_certificate
   host                   = module.gke_auth.host
@@ -113,6 +111,7 @@ resource "google_compute_address" "gitlab" {
   depends_on   = [module.project_services.project_id]
   count        = var.gitlab_address_name == "" ? 1 : 0
 }
+
 
 // Database
 resource "google_compute_global_address" "gitlab_sql" {
@@ -349,7 +348,7 @@ locals {
 }
 
 data "template_file" "gitlab_values" {
-  template = "${file("${path.module}/templates/gitlab-values.yaml.tpl")}"
+  template = "${file("${path.module}/templates/values-files/gitlab-values.yaml.tpl")}"
   vars = {
     DOMAIN                = local.domain
     INGRESS_IP            = local.gitlab_address
@@ -394,7 +393,7 @@ resource "helm_release" "gitlab" {
 
 # creates flux values.yaml file
 data "template_file" "flux_yaml" {
-  template = "${file("${path.module}/templates/flux-values.yaml.tpl")}"
+  template = "${file("${path.module}/templates/values-files/flux-values.yaml.tpl")}"
 
   vars = {
     EMAIL    = var.certmanager_email
@@ -402,6 +401,7 @@ data "template_file" "flux_yaml" {
     REPO     = var.repo
   }
 }
+
 
 # creates the flux values.yaml file from the redered data above
 resource "local_file" "flux_yaml" {
@@ -468,7 +468,7 @@ resource "helm_release" "helm_operator" {
   force_update = "true"
 
   values = [
-    "${file("${path.module}/values-files/helm-operator-values.yaml")}",
+    "${file("${path.module}/values-files/helm-operator-values.yaml")}"
   ]
   depends_on = [
     kubernetes_secret.flux_ssh, kubernetes_namespace.flux, time_sleep.sleep_for_cluster_fix_helm_6361
@@ -487,11 +487,18 @@ resource "helm_release" "fluxcd" {
   force_update = "true"
 
   values = [
-    data.template_file.flux_yaml.rendered
+    "${data.template_file.gitlab_values.rendered}"
   ]
   depends_on = [
     kubernetes_secret.flux_ssh, local_file.flux_yaml, helm_release.helm_operator, kubernetes_namespace.flux, time_sleep.sleep_for_cluster_fix_helm_6361, kubernetes_namespace.monitoring
   ]
+}
+data "template_file" "prom_stack" {
+  template = "${file("${path.module}/templates/values-files/prom-stack-values.yaml.tpl")}"
+
+  vars = {
+    GRAFANAIP = data.google_compute_address.grafana.address
+  }
 }
 
 resource "helm_release" "prom-stack" {
@@ -501,13 +508,43 @@ resource "helm_release" "prom-stack" {
   chart        = "kube-prometheus-stack"
   version      = "12.3.0"
   timeout      = "1200"
-  wait         = "true"
   force_update = "true"
 
   values = [
-    "${file("${path.module}/values-files/prom-stack-values.yaml")}"
+    "${data.template_file.prom_stack.rendered}"
   ]
   depends_on = [
-    kubernetes_secret.flux_ssh, local_file.flux_yaml, helm_release.helm_operator, kubernetes_namespace.flux, time_sleep.sleep_for_cluster_fix_helm_6361, kubernetes_namespace.monitoring
+    kubernetes_secret.flux_ssh,
+    local_file.flux_yaml,
+    helm_release.helm_operator,
+    time_sleep.sleep_for_cluster_fix_helm_6361,
+    kubernetes_namespace.monitoring,
+    google_compute_address.grafana,
+    data.template_file.prom_stack
   ]
+}
+
+resource "google_compute_address" "grafana" {
+  name         = var.grafana_address_name
+  project      = var.project_id
+  region       = var.region
+  address_type = "EXTERNAL"
+  description  = "Grafana Ingress IP"
+  depends_on   = [module.project_services]
+}
+
+
+data "google_compute_address" "grafana" {
+  name       = var.grafana_address_name
+  depends_on = [module.project_services]
+  region     = var.region
+  project    = var.project_id
+}
+
+resource "template_dir" "grafana_scripts" {
+  source_dir      = "${path.module}/scripts/templates"
+  destination_dir = "${path.cwd}/grafana-as-code"
+  vars = {
+    GRAFANAIP = data.google_compute_address.grafana.address
+  }
 }

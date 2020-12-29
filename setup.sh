@@ -50,7 +50,8 @@ if [[ -z $TOKEN ]]
 then
     # prompts for github personal access token
     read -p "Enter a github personal access token: " TOKEN
-        cat <<EOF >>token $TOKEN 
+    cat <<EOF >> token 
+    $TOKEN
 EOF
 fi
 
@@ -69,10 +70,6 @@ fi
 
 # creates gcp project to use for example
 echo ""
-helm repo add stable https://kubernetes-charts.storage.googleapis.com/
-helm repo add fluxcd https://charts.fluxcd.io
-helm repo add gitlab https://charts.gitlab.io
-helm repo update
 terraform fmt --recursive
 terraform init
 sleep 5
