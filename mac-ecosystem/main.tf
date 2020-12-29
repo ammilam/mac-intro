@@ -548,3 +548,9 @@ resource "template_dir" "grafana_scripts" {
     GRAFANAIP = data.google_compute_address.grafana.address
   }
 }
+
+resource "local_file" "prom_stack_yaml" {
+  content    = data.template_file.prom_stack.rendered
+  filename   = "${path.module}/values-files/prom-stack-values.yaml"
+  depends_on = [kubernetes_namespace.flux, time_sleep.sleep_for_cluster_fix_helm_6361]
+}

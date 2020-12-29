@@ -1,5 +1,3 @@
-
-
 # installs gke cluster and gitlab
 module "mac-ecosystem" {
   source                = "./mac-ecosystem"
