@@ -80,11 +80,6 @@ sleep 5
 # gets k8s cluster name and generates credentials
 export REGION=$(cat terraform.tfstate|jq -r '.outputs.location.value')
 
-echo "Getting kubeconfig for the GKE cluster..."
-echo ""
-sleep 2
-gcloud container clusters get-credentials $NAME --zone $REGION --project $PROJECT -q
-echo ""
 if [[ -z $(kubectl get secrets -o json|jq -r '.items[].metadata.name'|grep my-secret) ]]
 then
     openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=fake.gitlab.com"
