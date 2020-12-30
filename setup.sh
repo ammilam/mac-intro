@@ -97,14 +97,3 @@ then
     --user $(gcloud config get-value account)
     echo ""
 fi
-
-
-echo ""
-export GITLAB_URL=$(kubectl get ingress gitlab-webservice -o json|jq -r ".spec.rules[].host")
-export GITLAB_PASS=$(kubectl get secret gitlab-gitlab-initial-root-password -o go-template='{{ .data.password }}' | base64 -d && echo)
-echo "The Gitlab Address is https://${GITLAB_URL}/
-      The Gitlab Root Password is $GITLAB_PASS"
-sed "s/GITLAB_URL/$GITLAB_URL/g; s/GITLAB_PASS/$GITLAB_PASS/g" ./templates/gitlab_instance.tpl > "./gitlab_instance"
-echo "The Gitlab URL and Password have been stored under ./gitlab_instance
-      Be sure to delete this file during cleanup."
-

@@ -38,14 +38,14 @@ provider "helm" {
 resource "random_id" "suffix" {
   byte_length = 2
 }
-provider "kubernetes" {
 
+provider "kubernetes" {
   cluster_ca_certificate = module.gke_auth.cluster_ca_certificate
   host                   = module.gke_auth.host
   token                  = module.gke_auth.token
 }
 
-// Services
+# project api enablement
 module "project_services" {
   source  = "terraform-google-modules/project-factory/google//modules/project_services"
   version = "~> 9.0"
@@ -391,74 +391,10 @@ resource "helm_release" "gitlab" {
   ]
 }
 
-# creates flux values.yaml file
-data "template_file" "flux_yaml" {
-  template = "${file("${path.module}/templates/values-files/flux-values.yaml.tpl")}"
 
-  vars = {
-    EMAIL    = var.certmanager_email
-    USERNAME = var.username
-    REPO     = var.repo
-  }
-}
-
-
-# creates the flux values.yaml file from the redered data above
-resource "local_file" "flux_yaml" {
-  content    = data.template_file.flux_yaml.rendered
-  filename   = "${path.module}/values-files/flux-values.yaml"
-  depends_on = [kubernetes_namespace.flux, time_sleep.sleep_for_cluster_fix_helm_6361]
-}
-
-# creates key for flux & github 
-resource "tls_private_key" "mac_deploy_key" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
-}
-
-# creates public key in github
-resource "github_repository_deploy_key" "mac_intro_repo" {
-  title      = "Flux Key"
-  repository = "mac-intro"
-  key        = tls_private_key.mac_deploy_key.public_key_openssh
-  read_only  = "false"
-}
-
-resource "kubernetes_namespace" "flux" {
-  metadata {
-    name = "flux"
-  }
-  depends_on = [time_sleep.sleep_for_cluster_fix_helm_6361]
-}
-
-resource "kubernetes_namespace" "nginx" {
-  metadata {
-    name = "nginx"
-  }
-  depends_on = [time_sleep.sleep_for_cluster_fix_helm_6361]
-}
-
-
-resource "kubernetes_namespace" "monitoring" {
-  metadata {
-    name = "monitoring"
-  }
-  depends_on = [kubernetes_namespace.flux, time_sleep.sleep_for_cluster_fix_helm_6361]
-}
-
-# creates kubernetes secret for flux to pull changes from github and sync with gke
-resource "kubernetes_secret" "flux_ssh" {
-  metadata {
-    name      = "flux-ssh"
-    namespace = "flux"
-  }
-  data = {
-    "identity" = "${tls_private_key.mac_deploy_key.private_key_pem}"
-  }
-  depends_on = [kubernetes_namespace.flux, tls_private_key.mac_deploy_key, time_sleep.sleep_for_cluster_fix_helm_6361]
-}
-
-
+############################
+### Helm Operator Config ###
+############################
 resource "helm_release" "helm_operator" {
   name         = "helm-operator"
   namespace    = "flux"
@@ -475,7 +411,63 @@ resource "helm_release" "helm_operator" {
   ]
 }
 
+###################
+### Flux Config ###
+###################
 
+# creates key for flux & github 
+resource "tls_private_key" "mac_deploy_key" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+# creates public key in github
+resource "github_repository_deploy_key" "mac_intro_repo" {
+  title      = "Flux Key"
+  repository = "mac-intro"
+  key        = tls_private_key.mac_deploy_key.public_key_openssh
+  read_only  = "false"
+}
+
+# creates flux namespace
+resource "kubernetes_namespace" "flux" {
+  metadata {
+    name = "flux"
+  }
+  depends_on = [time_sleep.sleep_for_cluster_fix_helm_6361]
+}
+
+# creates kubernetes secret for flux to pull changes from github and sync with gke
+resource "kubernetes_secret" "flux_ssh" {
+  metadata {
+    name      = "flux-ssh"
+    namespace = "flux"
+  }
+  data = {
+    "identity" = "${tls_private_key.mac_deploy_key.private_key_pem}"
+  }
+  depends_on = [kubernetes_namespace.flux, tls_private_key.mac_deploy_key, time_sleep.sleep_for_cluster_fix_helm_6361]
+}
+
+# creates flux values.yaml file
+data "template_file" "flux_yaml" {
+  template = "${file("${path.module}/templates/values-files/flux-values.yaml.tpl")}"
+
+  vars = {
+    EMAIL    = var.certmanager_email
+    USERNAME = var.username
+    REPO     = var.repo
+  }
+}
+
+# creates the flux values.yaml file from the redered data above
+resource "local_file" "flux_yaml" {
+  content    = data.template_file.flux_yaml.rendered
+  filename   = "${path.module}/values-files/flux-values.yaml"
+  depends_on = [kubernetes_namespace.flux, time_sleep.sleep_for_cluster_fix_helm_6361]
+}
+
+# creates flux helmrelease
 resource "helm_release" "fluxcd" {
   name         = "flux"
   repository   = "https://charts.fluxcd.io"
@@ -493,6 +485,48 @@ resource "helm_release" "fluxcd" {
     kubernetes_secret.flux_ssh, local_file.flux_yaml, helm_release.helm_operator, kubernetes_namespace.flux, time_sleep.sleep_for_cluster_fix_helm_6361, kubernetes_namespace.monitoring
   ]
 }
+
+
+################################
+### Prometheus Stack Configs ###
+################################
+
+# creates grafana external IP
+resource "google_compute_address" "grafana" {
+  name         = var.grafana_address_name
+  project      = var.project_id
+  region       = var.region
+  address_type = "EXTERNAL"
+  description  = "Grafana Ingress IP"
+  depends_on   = [module.project_services]
+}
+
+# creates monitoring namespace
+resource "kubernetes_namespace" "monitoring" {
+  metadata {
+    name = "monitoring"
+  }
+  depends_on = [kubernetes_namespace.flux, time_sleep.sleep_for_cluster_fix_helm_6361]
+}
+
+# makes grafana external IP address created above referencable by template_dir and template_file
+data "google_compute_address" "grafana" {
+  name       = var.grafana_address_name
+  depends_on = [module.project_services]
+  region     = var.region
+  project    = var.project_id
+}
+
+# generates scripts to dynamically create kubernetes definitions for dashboards and notification channels
+resource "template_dir" "grafana_scripts" {
+  source_dir      = "${path.module}/scripts/templates"
+  destination_dir = "${path.cwd}/grafana-as-code"
+  vars = {
+    GRAFANAIP = data.google_compute_address.grafana.address
+  }
+}
+
+# creates values.yaml file to render in prom_stack helmrelease
 data "template_file" "prom_stack" {
   template = "${file("${path.module}/templates/values-files/prom-stack-values.yaml.tpl")}"
 
@@ -501,7 +535,15 @@ data "template_file" "prom_stack" {
   }
 }
 
-resource "helm_release" "prom-stack" {
+# creates a local copy of values.yaml file to reference outside of terraform automation
+resource "local_file" "prom_stack_yaml" {
+  content    = data.template_file.prom_stack.rendered
+  filename   = "${path.module}/values-files/prom-stack-values.yaml"
+  depends_on = [kubernetes_namespace.flux, time_sleep.sleep_for_cluster_fix_helm_6361]
+}
+
+# deploys prom_stack helmrelease
+resource "helm_release" "prom_stack" {
   name         = "kube-prometheus-stack"
   repository   = "https://prometheus-community.github.io/helm-charts"
   namespace    = "monitoring"
@@ -522,35 +564,4 @@ resource "helm_release" "prom-stack" {
     google_compute_address.grafana,
     data.template_file.prom_stack
   ]
-}
-
-resource "google_compute_address" "grafana" {
-  name         = var.grafana_address_name
-  project      = var.project_id
-  region       = var.region
-  address_type = "EXTERNAL"
-  description  = "Grafana Ingress IP"
-  depends_on   = [module.project_services]
-}
-
-
-data "google_compute_address" "grafana" {
-  name       = var.grafana_address_name
-  depends_on = [module.project_services]
-  region     = var.region
-  project    = var.project_id
-}
-
-resource "template_dir" "grafana_scripts" {
-  source_dir      = "${path.module}/scripts/templates"
-  destination_dir = "${path.cwd}/grafana-as-code"
-  vars = {
-    GRAFANAIP = data.google_compute_address.grafana.address
-  }
-}
-
-resource "local_file" "prom_stack_yaml" {
-  content    = data.template_file.prom_stack.rendered
-  filename   = "${path.module}/values-files/prom-stack-values.yaml"
-  depends_on = [kubernetes_namespace.flux, time_sleep.sleep_for_cluster_fix_helm_6361]
 }
