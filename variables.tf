@@ -93,3 +93,7 @@ variable "helm_chart_version" {
   default     = "4.6.0"
   description = "Helm chart version to install during deployment"
 }
+
+variable "google_credentials" {
+  type = string
+}

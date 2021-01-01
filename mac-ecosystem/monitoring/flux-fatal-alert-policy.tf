@@ -43,10 +43,10 @@ resource "time_sleep" "wait_for_logging_metric" {
   depends_on       = [google_logging_metric.gke_flux_fatal_metric]
 }
 resource "google_monitoring_notification_channel" "emails" {
-  display_name = "${var.username}"
+  display_name = var.username
   type         = "email"
   project      = var.monitoring_project_id
   labels = {
-    email_address = "${var.email_address}"
+    email_address = var.email_address
   }
 }
