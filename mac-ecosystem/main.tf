@@ -439,14 +439,21 @@ data "template_file" "prom_stack" {
   vars = {
     GRAFANAIP = local.grafana_address
   }
-  depends_on = [google_compute_address.grafana, time_sleep.grafana_helm]
+  depends_on = [
+    google_compute_address.grafana,
+    time_sleep.grafana_helm
+  ]
 }
 
 # creates a local copy of values.yaml file to reference outside of terraform automation
 resource "local_file" "prom_stack_yaml" {
-  content    = data.template_file.prom_stack.rendered
-  filename   = "${path.module}/values-files/prom-stack-values.yaml"
-  depends_on = [data.template_file.prom_stack, google_compute_address.grafana]
+  content  = data.template_file.prom_stack.rendered
+  filename = "${path.module}/values-files/prom-stack-values.yaml"
+  depends_on = [
+    data.template_file.prom_stack,
+    google_compute_address.grafana,
+    time_sleep.grafana_helm
+  ]
 }
 
 ############################
@@ -587,10 +594,11 @@ resource "helm_release" "prom_stack" {
     "${data.template_file.prom_stack.rendered}"
   ]
   depends_on = [
-    time_sleep.sleep_for_cluster_fix_helm_6361,
+    time_sleep.grafana_helm,
     kubernetes_namespace.monitoring,
     google_compute_address.grafana,
     data.template_file.prom_stack,
     local_file.prom_stack_yaml,
+    time_sleep.grafana_helm
   ]
 }

@@ -29,34 +29,29 @@ Note: I recommend running this through Cloud Shell from within GCP as mentioned 
 ## Getting Started
 ### Setting Up GKE / Gitlab / Flux / Helm Operator
 
-1. Fork this repository
+1. Fork and clone down this repository
 2. Get a github [personal access token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token)
-3. Google doesnt offer a way to easily enable the montioring workspace using terraform or the api so do the following
-
-    1. Go to the Cloud Console
+3. Enable the Monitoring Workspace by doing the following
+    1. Go to the [Cloud Console](https://console.cloud.google.com/)
     2. In the toolbar, select your Google Cloud project by using the project selector.
     3. In the Cloud Console navigation menu, click Monitoring. 
-3. Execute the following (input your personal email and username where you see EMAIL and USERNAME)
+    
+        `note: At this time Google doesnt offer a way to easily enable the montioring workspace using terraform or the api, so this part is manual)`
+3. Execute the following in the repo cloned locally
 
 ```bash
 # configure git user variables (enter your name and the account associated with github)
-git config --global user.email "EMAIL"
-git config --global user.name "USERNAME"
+git config --global user.email "EMAIL"   # enter your github email here
+git config --global user.name "USERNAME" # enter your github username here
 
 # setup GKE cluster, Gitlab, flux/helm-operator, and prometheus stack
 ./setup.sh
 
 # terminal will prompt for a github personal access token.
-Enter a github personal access token:
+Enter a github personal access token: # enter your github personal access token here
 ```
 
-**Note:** If you see the error below, rerun `./setup.sh`
-
-```bash
-Error: Post "https://35.226.37.144/api/v1/namespaces/flux/secrets": dial tcp 35.226.37.144:443: i/o timeout
-```
-
-This will create a GKE cluster, deploy Gitlab, and hook up [flux](https://fluxcd.io/) to the forked Github repo and deploy the releses contained under `/releases`
+This will create a GKE cluster, deploy Gitlab, and hook up [flux](https://fluxcd.io/) to the forked Github repo and deploy any kubernetes resource definitons or  helmreleses contained under `/releases`
 
 **Please Note:** you will be expected to provide a [Github Persional Access Token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) - so have one handy.
 
