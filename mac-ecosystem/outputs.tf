@@ -60,3 +60,15 @@ output "location" {
 output "grafana_address" {
   value = data.google_compute_address.grafana.address
 }
+
+output "project_id" {
+  value = var.project_id
+}
+
+output "username" {
+  value = var.username
+}
+
+output "email_address" {
+  value = var.email_address
+}

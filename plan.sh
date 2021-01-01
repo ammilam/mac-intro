@@ -1,8 +1,4 @@
 #! /bin/bash
-
-# gcp project
-echo ""
-#gcloud auth login --no-launch-browser
 export PROJECT="$(gcloud config get-value project)"
 echo "Your current configured gcloud project is $PROJECT"
 echo ""
@@ -68,37 +64,4 @@ then
     echo ""
     sleep 2
 fi
-
-# creates gcp project to use for example
-echo ""
-terraform fmt --recursive
-terraform init
-sleep 5
-terraform apply -var "repo=${REPO}" -var "github_token=${TOKEN}" -var "username=${USERNAME}" -var "email_address=${EMAIL}" -var "cluster_name=${NAME}" -var "project_id=${PROJECT}" -auto-approve
-sleep 5
-
-
-# gets k8s cluster name and generates credentials
-export REGION=$(cat terraform.tfstate|jq -r '.outputs.location.value')
-echo "Getting kubeconfig for the GKE cluster..."
-echo ""
-sleep 2
-gcloud container clusters get-credentials $NAME --zone $REGION --project $PROJECT -q
-echo ""
-if [[ -z $(kubectl get secrets -o json|jq -r '.items[].metadata.name'|grep my-secret) ]]
-then
-    openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=fake.gitlab.com"
-    kubectl create secret tls my-secret --key="tls.key" --cert="tls.crt"
-    rm tls.*
-fi
-
-if [[ -z $(kubectl get clusterrolebinding cluster-admin-binding) ]]
-then
-    echo "Setting current user as cluster admin"
-    echo ""
-    sleep 2
-    kubectl create clusterrolebinding cluster-admin-binding \
-    --clusterrole cluster-admin \
-    --user $(gcloud config get-value account)
-    echo ""
-fi
+terraform refresh -var "repo=${REPO}" -var "github_token=${TOKEN}" -var "username=${USERNAME}" -var "email_address=${EMAIL}" -var "cluster_name=${NAME}" -var "project_id=${PROJECT}"

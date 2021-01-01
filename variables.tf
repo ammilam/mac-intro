@@ -26,7 +26,7 @@ variable "username" {
   type        = string
   description = "Github username"
 }
-variable "certmanager_email" {
+variable "email_address" {
   description = "Email used to retrieve SSL certificates from Let's Encrypt"
 }
 

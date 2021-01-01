@@ -58,9 +58,12 @@ module "project_services" {
     "container.googleapis.com",
     "servicenetworking.googleapis.com",
     "cloudresourcemanager.googleapis.com",
-    "redis.googleapis.com"
+    "redis.googleapis.com",
+    "monitoring.googleapis.com"
   ]
+
 }
+
 
 // GCS Service Account
 resource "google_service_account" "gitlab_gcs" {
@@ -108,7 +111,7 @@ resource "google_compute_address" "gitlab" {
   region       = var.region
   address_type = "EXTERNAL"
   description  = "Gitlab Ingress IP"
-  depends_on   = [module.project_services.project_id]
+  depends_on   = [module.project_services.project_id, google_compute_address.grafana]
   count        = var.gitlab_address_name == "" ? 1 : 0
 }
 
@@ -355,7 +358,7 @@ data "template_file" "gitlab_values" {
     DB_PRIVATE_IP         = google_sql_database_instance.gitlab_db.private_ip_address
     REDIS_PRIVATE_IP      = google_redis_instance.gitlab.host
     PROJECT_ID            = var.project_id
-    CERT_MANAGER_EMAIL    = var.certmanager_email
+    CERT_MANAGER_EMAIL    = var.email_address
     GITLAB_RUNNER_INSTALL = var.gitlab_runner_install
   }
 }
@@ -368,7 +371,7 @@ resource "local_file" "gitlab_yaml" {
 
 resource "time_sleep" "sleep_for_cluster_fix_helm_6361" {
   create_duration  = "300s"
-  destroy_duration = "300s"
+  destroy_duration = "60s"
   depends_on       = [module.gke.endpoint, google_sql_database.gitlabhq_production]
 }
 
@@ -391,6 +394,60 @@ resource "helm_release" "gitlab" {
   ]
 }
 
+data "google_compute_address" "grafana" {
+  name       = var.grafana_address_name
+  depends_on = [module.project_services]
+  region     = var.region
+  project    = var.project_id
+}
+
+# # generates scripts to dynamically create kubernetes definitions for dashboards and notification channels
+# resource "template_dir" "grafana_scripts" {
+#   source_dir      = "${path.module}/templates/scripts"
+#   destination_dir = "${path.cwd}/grafana-as-code"
+#   vars = {
+#     GRAFANAIP = data.google_compute_address.grafana.address
+#   }
+# }
+
+locals {
+  grafana_address = data.google_compute_address.grafana.address
+}
+resource "time_sleep" "grafana_helm" {
+  create_duration  = "60s"
+  destroy_duration = "10s"
+  depends_on       = [module.gke.endpoint, google_sql_database.gitlabhq_production, helm_release.gitlab]
+}
+# creates values.yaml file to render in prom_stack helmrelease
+data "template_file" "get_dashboards" {
+  template = "${file("${path.module}/templates/scripts/get-dashboard.sh.tpl")}"
+  vars = {
+    GRAFANAIP = local.grafana_address
+  }
+  depends_on = [google_compute_address.grafana, time_sleep.grafana_helm]
+}
+
+# creates a local copy of values.yaml file to reference outside of terraform automation
+resource "local_file" "get_dashboards_sh" {
+  content    = data.template_file.get_dashboards.rendered
+  filename   = "${path.module}/grafana-as-code/dashboards/get-dashboard.sh"
+  depends_on = [data.template_file.prom_stack, time_sleep.grafana_helm]
+}
+# creates values.yaml file to render in prom_stack helmrelease
+data "template_file" "prom_stack" {
+  template = "${file("${path.module}/templates/values-files/prom-stack-values.yaml.tpl")}"
+  vars = {
+    GRAFANAIP = local.grafana_address
+  }
+  depends_on = [google_compute_address.grafana, time_sleep.grafana_helm]
+}
+
+# creates a local copy of values.yaml file to reference outside of terraform automation
+resource "local_file" "prom_stack_yaml" {
+  content    = data.template_file.prom_stack.rendered
+  filename   = "${path.module}/values-files/prom-stack-values.yaml"
+  depends_on = [data.template_file.prom_stack, google_compute_address.grafana]
+}
 
 ############################
 ### Helm Operator Config ###
@@ -446,7 +503,11 @@ resource "kubernetes_secret" "flux_ssh" {
   data = {
     "identity" = "${tls_private_key.mac_deploy_key.private_key_pem}"
   }
-  depends_on = [kubernetes_namespace.flux, tls_private_key.mac_deploy_key, time_sleep.sleep_for_cluster_fix_helm_6361]
+  depends_on = [
+    kubernetes_namespace.flux,
+    tls_private_key.mac_deploy_key,
+    time_sleep.sleep_for_cluster_fix_helm_6361
+  ]
 }
 
 # creates flux values.yaml file
@@ -454,7 +515,7 @@ data "template_file" "flux_yaml" {
   template = "${file("${path.module}/templates/values-files/flux-values.yaml.tpl")}"
 
   vars = {
-    EMAIL    = var.certmanager_email
+    EMAIL    = var.email_address
     USERNAME = var.username
     REPO     = var.repo
   }
@@ -469,20 +530,21 @@ resource "local_file" "flux_yaml" {
 
 # creates flux helmrelease
 resource "helm_release" "fluxcd" {
-  name         = "flux"
-  repository   = "https://charts.fluxcd.io"
-  namespace    = "flux"
-  chart        = "flux"
-  version      = "1.6.0"
-  timeout      = "1200"
-  wait         = "true"
-  force_update = "true"
+  name       = "flux"
+  repository = "https://charts.fluxcd.io"
+  namespace  = "flux"
+  chart      = "flux"
+  version    = "1.6.0"
+  timeout    = "300"
 
   values = [
     "${data.template_file.gitlab_values.rendered}"
   ]
   depends_on = [
-    kubernetes_secret.flux_ssh, local_file.flux_yaml, helm_release.helm_operator, kubernetes_namespace.flux, time_sleep.sleep_for_cluster_fix_helm_6361, kubernetes_namespace.monitoring
+    kubernetes_secret.flux_ssh,
+    local_file.flux_yaml,
+    kubernetes_namespace.flux,
+    time_sleep.sleep_for_cluster_fix_helm_6361,
   ]
 }
 
@@ -506,41 +568,10 @@ resource "kubernetes_namespace" "monitoring" {
   metadata {
     name = "monitoring"
   }
-  depends_on = [kubernetes_namespace.flux, time_sleep.sleep_for_cluster_fix_helm_6361]
+  depends_on = [time_sleep.sleep_for_cluster_fix_helm_6361]
 }
 
 # makes grafana external IP address created above referencable by template_dir and template_file
-data "google_compute_address" "grafana" {
-  name       = var.grafana_address_name
-  depends_on = [module.project_services]
-  region     = var.region
-  project    = var.project_id
-}
-
-# generates scripts to dynamically create kubernetes definitions for dashboards and notification channels
-resource "template_dir" "grafana_scripts" {
-  source_dir      = "${path.module}/scripts/templates"
-  destination_dir = "${path.cwd}/grafana-as-code"
-  vars = {
-    GRAFANAIP = data.google_compute_address.grafana.address
-  }
-}
-
-# creates values.yaml file to render in prom_stack helmrelease
-data "template_file" "prom_stack" {
-  template = "${file("${path.module}/templates/values-files/prom-stack-values.yaml.tpl")}"
-
-  vars = {
-    GRAFANAIP = data.google_compute_address.grafana.address
-  }
-}
-
-# creates a local copy of values.yaml file to reference outside of terraform automation
-resource "local_file" "prom_stack_yaml" {
-  content    = data.template_file.prom_stack.rendered
-  filename   = "${path.module}/values-files/prom-stack-values.yaml"
-  depends_on = [kubernetes_namespace.flux, time_sleep.sleep_for_cluster_fix_helm_6361]
-}
 
 # deploys prom_stack helmrelease
 resource "helm_release" "prom_stack" {
@@ -549,19 +580,17 @@ resource "helm_release" "prom_stack" {
   namespace    = "monitoring"
   chart        = "kube-prometheus-stack"
   version      = "12.3.0"
-  timeout      = "1200"
+  timeout      = "300"
   force_update = "true"
 
   values = [
     "${data.template_file.prom_stack.rendered}"
   ]
   depends_on = [
-    kubernetes_secret.flux_ssh,
-    local_file.flux_yaml,
-    helm_release.helm_operator,
     time_sleep.sleep_for_cluster_fix_helm_6361,
     kubernetes_namespace.monitoring,
     google_compute_address.grafana,
-    data.template_file.prom_stack
+    data.template_file.prom_stack,
+    local_file.prom_stack_yaml,
   ]
 }

@@ -8,7 +8,7 @@ This repo attempts to lay a general framework to play with a MaC implementation,
 - Installation of flux/helm-operator to implement k8s Gitops
 - Flux automated deployment of prometheus-stack (prometheus/alertmanager/grafana) and other k8s resources
 - Grafana Dashboarding/Alerts/Notifiers as Code Implementation
-- WIP -> GCP Alerts/Monitoring Implementation
+- GCP Alerts/Monitoring Implementation
 - WIP -> GCP Dashboard Auto Provisioning
 
 
@@ -29,7 +29,14 @@ Note: I recommend running this through Cloud Shell from within GCP as mentioned 
 ## Getting Started
 ### Setting Up GKE / Gitlab / Flux / Helm Operator
 
-To kick this off  simply fork this repo, clone locally, and execute the following:
+1. Fork this repository
+2. Get a github [personal access token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token)
+3. Google doesnt offer a way to easily enable the montioring workspace using terraform or the api so do the following
+
+    1. Go to the Cloud Console
+    2. In the toolbar, select your Google Cloud project by using the project selector.
+    3. In the Cloud Console navigation menu, click Monitoring. 
+3. Execute the following (input your personal email and username where you see EMAIL and USERNAME)
 
 ```bash
 # configure git user variables (enter your name and the account associated with github)
@@ -55,28 +62,14 @@ This will create a GKE cluster, deploy Gitlab, and hook up [flux](https://fluxcd
 
 ## Maintaining Resources
 ### Altering Gitlab Configs
-Gitlab is deployed by helm chart during the setup process above. Configuration changes can be made to the values.yaml file under `/gitlab-gke-module/variables.yaml.tpl`. For information on supported settings refer to this [documentation](https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/values.yaml)
+Gitlab is deployed by helm chart during the setup process above. Configuration changes can be made to the values.yaml file under `/mac-ecosystem/templates/values-files/gitlab-values.yaml.tpl`. For information on supported settings refer to this [documentation](https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/values.yaml)
 
-Once changes have been made to `/gitlab-gke-module/variables.yaml.tpl`, sync the changes by re-running:
+Once changes have been made to `/mac-ecosystem/templates/values-files/gitlab-values.yaml.tpl`, sync the changes by re-running:
 ```bash 
 # this will sync settings to the cluster, including Gitlab changes
 ./setup.sh
 ```
-### Managing Helm-Operator Post Install
-To manage helm-operator post installation, edit `helmOperator.yaml` located under `/flux` with new configurations. Refer to this [documentation](https://github.com/fluxcd/helm-operator/blob/master/chart/helm-operator/values.yaml) for helm-operator values.yaml config settings.
-```bash
-# bash script that simply does an update/install of the helm-operator chart
-./flux-install/installHelmOperator.sh
-```
 
-### Managing Flux Post Install
-Flux automatically syncs k8s resources and helm chart by means of helm-operator & helmrelease definitons.
-
-To manage flux post installation, edit `flux.yaml` located under `/flux` with new configurations. Refer to this [documentation](https://github.com/fluxcd/flux/blob/master/chart/flux/values.yaml) for flux values.yaml config settings.
-```bash
-# bash script that simply does an update/install of the flux chart
-./flux-install/installFlux.sh
-```
 
 ### Deploying New Kubernetes  Resources / HelmRelease Using Flux & Helm-Operator
 In order to update/create a new [HelmRelease](https://docs.fluxcd.io/projects/helm-operator/en/1.0.0-rc9/references/helmrelease-custom-resource.html), or deploy Kubernetes resources (namespace/deployment/pod/etc), a resource definition will need to be placed under the `/releases` directory at the root of this repository. Once merged to main/master, flux will automatically sync the changes with the GKE cluster on a 1 minute sync loop.
