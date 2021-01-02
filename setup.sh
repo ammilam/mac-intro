@@ -101,10 +101,18 @@ GCP_USER=$(gcloud config get-value account)
 if [[ -z $(gcloud iam service-accounts list|grep $SA_NAME) ]]
 then
     gcloud iam service-accounts create $SA_NAME
-    gcloud projects add-iam-policy-binding $PROJECT --member="user:${GCP_USER}" --role="roles/iam.serviceAccountUser"
-    gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${SA_NAME}@${PROJECT}.iam.gserviceaccount.com" --role="roles/owner"
 fi
 
+gcloud projects add-iam-policy-binding $PROJECT --member="user:${GCP_USER}" --role="roles/iam.serviceAccountUser" --role="roles/owner"
+gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${SA_NAME}@${PROJECT}.iam.gserviceaccount.com" \
+--role="roles/owner" --role="roles/viewer" --role="roles/container.admin" --role="roles/container.clusterAdmin" \
+--role="roles/compute.admin"
+
+
+if [[ ! -f "${SA_NAME}-${PROJECT}.json" ]]
+then
+    gcloud iam service-accounts keys create ./mac-ecosystem/"${SA_NAME}-${PROJECT}.json" --iam-account "${SA_NAME}@${PROJECT}.iam.gserviceaccount.com"
+fi
 
 ###############################################
 ##### Sets Google Application Credentials #####

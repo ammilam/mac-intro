@@ -1,10 +1,16 @@
+provider "google" {
+  project     = var.project_id
+  credentials = "${file("${path.module}/${var.google_credentials}")}"
+}
+
 provider "github" {
   token = var.github_token
   owner = var.username
 }
 
 provider "google-beta" {
-  project = var.project_id
+  project     = var.project_id
+  credentials = "${file("${path.module}/${var.google_credentials}")}"
 }
 
 locals {
@@ -40,29 +46,13 @@ provider "kubernetes" {
   token                  = module.gke_auth.token
 }
 
-resource "google_project_service" "project" {
-  project = var.project_id
-  for_each = toset([
-    "compute.googleapis.com",
-    "container.googleapis.com",
-    "compute.googleapis.com",
-    "container.googleapis.com",
-    "servicenetworking.googleapis.com",
-    "cloudresourcemanager.googleapis.com",
-    "redis.googleapis.com",
-    "monitoring.googleapis.com"
-  ])
-  service                    = each.value
-  disable_dependent_services = true
-}
 
 # project api enablement
 module "project_services" {
-  source  = "terraform-google-modules/project-factory/google//modules/project_services"
-  version = "~> 9.0"
-
+  source                      = "terraform-google-modules/project-factory/google//modules/project_services"
+  version                     = "~> 9.0"
+  disable_services_on_destroy = "false"
   project_id                  = var.project_id
-  disable_services_on_destroy = false
 
   activate_apis = [
     "iam.googleapis.com",
@@ -508,6 +498,7 @@ resource "github_repository_deploy_key" "mac_intro_repo" {
   repository = "mac-intro"
   key        = tls_private_key.mac_deploy_key.public_key_openssh
   read_only  = "false"
+  depends_on = [module.project_services]
 }
 
 # creates flux namespace
@@ -559,8 +550,8 @@ resource "helm_release" "fluxcd" {
   namespace     = "flux"
   chart         = "flux"
   version       = "1.6.0"
-  timeout       = "300"
   recreate_pods = "true"
+  wait          = "false"
 
   values = [data.template_file.flux_yaml.rendered]
   depends_on = [
