@@ -7,8 +7,8 @@
 ##### Verifies Tool Installation #####
 ######################################
 which jq 2>&1 >/dev/null || (echo "Error, jq executable is required" && exit 1) || exit 1
-which terraform 2>&1 >/dev/null || (echo "Error, jq executable is required" && exit 1) || exit 1
-which gcloud 2>&1 >/dev/null || (echo "Error, jq executable is required" && exit 1) || exit 1
+which terraform 2>&1 >/dev/null || (echo "Error, terracorm executable is required" && exit 1) || exit 1
+which gcloud 2>&1 >/dev/null || (echo "Error, gcloud executable is required" && exit 1) || exit 1
 
 
 #####################################
