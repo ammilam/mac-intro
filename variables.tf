@@ -26,7 +26,7 @@ variable "username" {
   type        = string
   description = "Github username"
 }
-variable "certmanager_email" {
+variable "email_address" {
   description = "Email used to retrieve SSL certificates from Let's Encrypt"
 }
 
@@ -92,4 +92,8 @@ variable "helm_chart_version" {
   type        = string
   default     = "4.6.0"
   description = "Helm chart version to install during deployment"
+}
+
+variable "google_credentials" {
+  type = string
 }

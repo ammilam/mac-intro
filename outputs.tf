@@ -50,3 +50,11 @@ output "root_password_instructions" {
 output "grafana_address" {
   value = module.mac-ecosystem.grafana_address
 }
+
+output "location" {
+  value = module.mac-ecosystem.location
+}
+
+output "service_account_file" {
+  value = local.service_account_file
+}
