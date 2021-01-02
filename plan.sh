@@ -57,6 +57,12 @@ if [[ ! -f './terraform.tfstate' ]]
 then
     read -p "Enter a cluster name: " NAME
 fi
+
+if [[ $(cat terraform.tfstate|jq -r '.outputs.cluster_name.value') == "null" ]]
+then
+    read -p "Enter a cluster name: " NAME
+fi
+
 if [[ -f './terraform.tfstate' ]]
 then
     export NAME="$(cat terraform.tfstate|jq -r '.outputs.cluster_name.value')"

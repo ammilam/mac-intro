@@ -1,29 +1,25 @@
-
 provider "google" {
-  project     = var.project_id
-  credentials = "${file("${path.module}/${var.google_credentials}")}"
+  project = var.project_id
+  credentials = file(
+    "${path.module}/${var.google_credentials}"
+  )
 }
+
+provider "google-beta" {
+  project = var.project_id
+  credentials = file(
+    "${path.module}/${var.google_credentials}"
+  )
+}
+
+provider "github" {
+  token = var.github_token
+  owner = var.username
+}
+
 
 locals {
   service_account_file = var.google_credentials
-}
-
-module "project_services" {
-  source                      = "terraform-google-modules/project-factory/google//modules/project_services"
-  version                     = "~> 9.0"
-  disable_services_on_destroy = "false"
-  project_id                  = var.project_id
-  activate_apis = [
-    "iam.googleapis.com",
-    "compute.googleapis.com",
-    "container.googleapis.com",
-    "servicenetworking.googleapis.com",
-    "cloudresourcemanager.googleapis.com",
-    "redis.googleapis.com",
-    "monitoring.googleapis.com",
-    "sql-component.googleapis.com",
-    "sqladmin.googleapis.com"
-  ]
 }
 
 # installs gke cluster and gitlab
@@ -31,7 +27,7 @@ module "mac-ecosystem" {
   source                = "./mac-ecosystem"
   domain                = ""
   gitlab_runner_install = "false"
-  project_id            = module.project_services.project_id
+  project_id            = var.project_id
   cluster_name          = var.cluster_name
   email_address         = var.email_address
   username              = var.username
@@ -49,5 +45,5 @@ module "monitoring" {
   username              = var.username
   email_address         = var.email_address
   gke_project_id        = var.project_id
-  monitoring_project_id = module.project_services.project_id
+  monitoring_project_id = var.project_id
 }

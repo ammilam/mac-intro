@@ -79,11 +79,15 @@ fi
 ##################################################################
 ##### Abstracting Existing Cluster Name From Terraform State #####
 ##################################################################
-if [[ ! -f './terraform.tfstate' ]]
+# checks if terraform state file exists, if it does - sets the cluster_name to the output in the state file
+
+
+if [[ ! -f terraform.tfstate ]]
 then
     read -p "Enter a cluster name: " NAME
 fi
-if [[ -f './terraform.tfstate' ]]
+
+if [[ $(cat terraform.tfstate|jq -r '.outputs.cluster_name.value') ]]
 then
     export NAME="$(cat terraform.tfstate|jq -r '.outputs.cluster_name.value')"
     echo "Your existing cluster is called $NAME"
@@ -95,7 +99,7 @@ fi
 ##################################################
 ##### Service Account Creation For Terraform #####
 ##################################################
-SA_NAME=terraform-deploy
+SA_NAME="terraform-${PROJECT}"
 GCP_USER=$(gcloud config get-value account)
 
 if [[ -z $(gcloud iam service-accounts list|grep $SA_NAME) ]]
@@ -103,22 +107,20 @@ then
     gcloud iam service-accounts create $SA_NAME
 fi
 
-gcloud projects add-iam-policy-binding $PROJECT --member="user:${GCP_USER}" --role="roles/iam.serviceAccountUser" --role="roles/owner"
-gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${SA_NAME}@${PROJECT}.iam.gserviceaccount.com" \
---role="roles/owner" --role="roles/viewer" --role="roles/container.admin" --role="roles/container.clusterAdmin" \
---role="roles/compute.admin"
+gcloud projects add-iam-policy-binding $PROJECT --member="user:${GCP_USER}" --role="roles/owner"
+gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${SA_NAME}@${PROJECT}.iam.gserviceaccount.com" --role="roles/owner"
 
 
-if [[ ! -f "${SA_NAME}-${PROJECT}.json" ]]
+if [[ ! -f "${SA_NAME}.json" ]]
 then
-    gcloud iam service-accounts keys create ./mac-ecosystem/"${SA_NAME}-${PROJECT}.json" --iam-account "${SA_NAME}@${PROJECT}.iam.gserviceaccount.com"
+    gcloud iam service-accounts keys create ./"${SA_NAME}.json" --iam-account "${SA_NAME}@${PROJECT}.iam.gserviceaccount.com"
 fi
 
 ###############################################
 ##### Sets Google Application Credentials #####
 ###############################################
-export GOOGLE_APPLICATION_CREDENTIALS="${SA_NAME}-${PROJECT}.json"
 
+export GOOGLE_APPLICATION_CREDENTIALS="${SA_NAME}.json"
 
 ##########################################
 ##### Terraform Apply With Variables #####
