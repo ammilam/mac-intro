@@ -18,8 +18,8 @@ echo ""
 export PROJECT="$(gcloud config get-value project)"
 echo "Your current configured gcloud project is $PROJECT"
 echo ""
-echo "Note! This will take some time to deploy and gitlab takes time to completely come up."
-echo "Prepare to be wating at least 30 minutes from start to finish."
+echo "This will deploy a gke cluster with gitlab, an intentionally broken flux, prometheus stack, helm operator, and gcp logging/monitoring/alerts."
+echo "The gcp alert created will instruct you on how to resolve the broken flux and is intended to demonstrate monitoring as code functionality."
 sleep 2
 echo ""
 
@@ -79,11 +79,15 @@ fi
 ##################################################################
 ##### Abstracting Existing Cluster Name From Terraform State #####
 ##################################################################
-if [[ ! -f './terraform.tfstate' ]]
+# checks if terraform state file exists, if it does - sets the cluster_name to the output in the state file
+
+
+if [[ ! -f terraform.tfstate ]]
 then
     read -p "Enter a cluster name: " NAME
 fi
-if [[ -f './terraform.tfstate' ]]
+
+if [[ $(cat terraform.tfstate|jq -r '.outputs.cluster_name.value') ]]
 then
     export NAME="$(cat terraform.tfstate|jq -r '.outputs.cluster_name.value')"
     echo "Your existing cluster is called $NAME"
@@ -95,22 +99,28 @@ fi
 ##################################################
 ##### Service Account Creation For Terraform #####
 ##################################################
-SA_NAME=terraform-deploy
+SA_NAME="terraform-${PROJECT}"
 GCP_USER=$(gcloud config get-value account)
 
 if [[ -z $(gcloud iam service-accounts list|grep $SA_NAME) ]]
 then
     gcloud iam service-accounts create $SA_NAME
-    gcloud projects add-iam-policy-binding $PROJECT --member="user:${GCP_USER}" --role="roles/iam.serviceAccountUser"
-    gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${SA_NAME}@${PROJECT}.iam.gserviceaccount.com" --role="roles/owner"
 fi
 
+gcloud projects add-iam-policy-binding $PROJECT --member="user:${GCP_USER}" --role="roles/owner"
+gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${SA_NAME}@${PROJECT}.iam.gserviceaccount.com" --role="roles/owner"
+
+
+if [[ ! -f "${SA_NAME}.json" ]]
+then
+    gcloud iam service-accounts keys create ./"${SA_NAME}.json" --iam-account "${SA_NAME}@${PROJECT}.iam.gserviceaccount.com"
+fi
 
 ###############################################
 ##### Sets Google Application Credentials #####
 ###############################################
-export GOOGLE_APPLICATION_CREDENTIALS="${SA_NAME}-${PROJECT}.json"
 
+export GOOGLE_APPLICATION_CREDENTIALS="${SA_NAME}.json"
 
 ##########################################
 ##### Terraform Apply With Variables #####
@@ -159,3 +169,4 @@ echo ""
 echo "A GCP Service Account key for $SA_NAME has been generated at the root of this module."
 echo "That Service Account has elivated rights over the project $PROJECT."
 echo "./cleanup.sh can be used to run terraform destroy, script will also cleanup the generated service account key"
+echo ""

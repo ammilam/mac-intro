@@ -30,7 +30,7 @@ Note: I recommend running this through Cloud Shell from within GCP as mentioned 
 ### Setting Up GKE / Gitlab / Flux / Helm Operator
 
 1. Fork and clone down this repository
-2. Get a github [personal access token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token)
+2. Get a github [personal access token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) with the `repo` scope selected
 3. Enable the Monitoring Workspace by doing the following
     1. Go to the [Cloud Console](https://console.cloud.google.com/)
     2. In the toolbar, select your Google Cloud project by using the project selector.
@@ -51,7 +51,7 @@ git config --global user.name "USERNAME" # enter your github username here
 Enter a github personal access token: # enter your github personal access token here
 ```
 
-This will create a GKE cluster, deploy Gitlab, and hook up [flux](https://fluxcd.io/) to the forked Github repo and deploy any kubernetes resource definitons or  helmreleses contained under `/releases`
+This will create a GKE cluster, deploy Gitlab, and hook up an intentionally broken [flux](https://fluxcd.io/) with corresponding gcp custom logging metric and alert policy that contains instructions on how to fix the "problem". Once operational, flux will hook up to this forked Github repo and deploy any kubernetes resource definitons or helmreleses contained under `/releases`. This is intended to give people insight into what a montioring as code ecosystem looks like.
 
 **Please Note:** you will be expected to provide a [Github Persional Access Token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) - so have one handy.
 

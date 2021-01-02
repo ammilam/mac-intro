@@ -4,3 +4,4 @@ token
 .terraform*
 terraform.tfstate*
 gitlab_insance
+*.json

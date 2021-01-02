@@ -1,9 +1,22 @@
-
 provider "google" {
-  project               = var.project_id
-  user_project_override = true
-
+  project = var.project_id
+  credentials = file(
+    "${path.module}/${var.google_credentials}"
+  )
 }
+
+provider "google-beta" {
+  project = var.project_id
+  credentials = file(
+    "${path.module}/${var.google_credentials}"
+  )
+}
+
+provider "github" {
+  token = var.github_token
+  owner = var.username
+}
+
 
 locals {
   service_account_file = var.google_credentials
@@ -21,6 +34,7 @@ module "mac-ecosystem" {
   repo                  = var.repo
   github_token          = var.github_token
   gke_machine_type      = "e2-standard-4"
+  google_credentials    = var.google_credentials
 }
 
 ######################
