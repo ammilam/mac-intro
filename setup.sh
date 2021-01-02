@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /bin/bash -e
 ################################
 ##### Author: Andrew Milam #####
 ################################
@@ -45,10 +45,13 @@ then
     exit 0
 fi
 
+
+####################################
+##### Git Hub & Repo Variables #####
+####################################
 echo "Your Git user.email global variable is set to : $EMAIL"
 echo ""
 sleep 2
-
 basename=$(basename $URL)
 re="^(https|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+).git$"
 if [[ $URL =~ $re ]]; then
@@ -88,16 +91,24 @@ then
     sleep 2
 fi
 
+
 ##################################################
 ##### Service Account Creation For Terraform #####
 ##################################################
 SA_NAME=terraform-deploy
-gcloud iam service-accounts create $SA_NAME
 GCP_USER=$(gcloud config get-value account)
-gcloud projects add-iam-policy-binding $PROJECT --member="user:${GCP_USER}" --role="roles/iam.serviceAccountUser"
-gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${SA_NAME}@${PROJECT}.iam.gserviceaccount.com" --role="roles/owner"
-#gcloud auth activate-service-account "${SA_NAME}@${PROJECT}.iam.gserviceaccount.com" --key-file=./$GOOGLE_APPLICATION_CREDENTIALS
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if [[ -z $(gcloud iam service-accounts list|grep $SA_NAME) ]]
+then
+    gcloud iam service-accounts create $SA_NAME
+    gcloud projects add-iam-policy-binding $PROJECT --member="user:${GCP_USER}" --role="roles/iam.serviceAccountUser"
+    gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${SA_NAME}@${PROJECT}.iam.gserviceaccount.com" --role="roles/owner"
+fi
+
+
+###############################################
+##### Sets Google Application Credentials #####
+###############################################
 export GOOGLE_APPLICATION_CREDENTIALS="${SA_NAME}-${PROJECT}.json"
 
 
@@ -115,6 +126,7 @@ sleep 5
 ##################################################
 ##### Sets Kubernetes Context To GKE CLuster #####
 ##################################################
+
 export REGION=$(cat terraform.tfstate|jq -r '.outputs.location.value')
 echo "Getting kubeconfig for the GKE cluster..."
 echo ""
@@ -124,7 +136,7 @@ echo ""
 
 if [[ -z $(kubectl get secrets -o json|jq -r '.items[].metadata.name'|grep my-secret) ]]
 then
-    openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=fake.gitlab.com"
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 --keyout tls.key -out tls.crt -subj "/CN=fake.gitlab.com"
     kubectl create secret tls my-secret --key="tls.key" --cert="tls.crt"
     rm tls.*
 fi
@@ -142,3 +154,8 @@ then
     --user $(gcloud config get-value account)
     echo ""
 fi
+
+echo ""
+echo "A GCP Service Account key for $SA_NAME has been generated at the root of this module."
+echo "That Service Account has elivated rights over the project $PROJECT."
+echo "./cleanup.sh can be used to run terraform destroy, script will also cleanup the generated service account key"

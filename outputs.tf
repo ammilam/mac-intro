@@ -54,3 +54,7 @@ output "grafana_address" {
 output "location" {
   value = module.mac-ecosystem.location
 }
+
+output "service_account_file" {
+  value = local.service_account_file
+}

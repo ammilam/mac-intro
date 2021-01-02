@@ -5,6 +5,10 @@ provider "google" {
 
 }
 
+locals {
+  service_account_file = var.google_credentials
+}
+
 # installs gke cluster and gitlab
 module "mac-ecosystem" {
   source                = "./mac-ecosystem"

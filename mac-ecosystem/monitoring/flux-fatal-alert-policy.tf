@@ -3,7 +3,7 @@ resource "google_monitoring_alert_policy" "flux_fatal_alert_policy" {
   project      = var.monitoring_project_id
   display_name = "flux-fatal-alert-policy"
   documentation {
-    content   = "Kill the pod to fix the problems"
+    content   = "Flux has been deployed intentionally broken, in order to fix this simply correct the secret name in and run ./setup.sh again."
     mime_type = "text/markdown"
   }
   combiner = "OR"

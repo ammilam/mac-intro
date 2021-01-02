@@ -4,7 +4,7 @@ git:
   pollInterval: 1m
   user: ${USERNAME}
   email: ${EMAIL}
-  secretName: flux-ssh
+  secretName: flux-ss
   label: flux
 sync:
   state: git
