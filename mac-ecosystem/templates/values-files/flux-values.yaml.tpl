@@ -6,6 +6,7 @@ git:
   email: ${EMAIL}
   secretName: flux-ss
   label: flux
+  branch: main
 sync:
   state: git
   timeout: 1m

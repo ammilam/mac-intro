@@ -1,5 +1,5 @@
 provider "github" {
-  token = "${var.github_token}"
+  token = var.github_token
   owner = var.username
 }
 
@@ -478,12 +478,11 @@ resource "local_file" "prom_stack_yaml" {
 ### Helm Operator Config ###
 ############################
 resource "helm_release" "helm_operator" {
-  name         = "helm-operator"
-  namespace    = "flux"
-  repository   = "https://charts.fluxcd.io"
-  chart        = "helm-operator"
-  version      = "1.2.0"
-  force_update = "true"
+  name       = "helm-operator"
+  namespace  = "flux"
+  repository = "https://charts.fluxcd.io"
+  chart      = "helm-operator"
+  version    = "1.2.0"
 
   values = [
     "${file("${path.module}/values-files/helm-operator-values.yaml")}"
@@ -555,19 +554,18 @@ resource "local_file" "flux_yaml" {
 
 # creates flux helmrelease
 resource "helm_release" "fluxcd" {
-  name       = "flux"
-  repository = "https://charts.fluxcd.io"
-  namespace  = "flux"
-  chart      = "flux"
-  version    = "1.6.0"
-  timeout    = "300"
+  name          = "flux"
+  repository    = "https://charts.fluxcd.io"
+  namespace     = "flux"
+  chart         = "flux"
+  version       = "1.6.0"
+  timeout       = "300"
+  recreate_pods = "true"
 
-  values = [
-    "${data.template_file.gitlab_values.rendered}"
-  ]
+  values = [data.template_file.flux_yaml.rendered]
   depends_on = [
     kubernetes_secret.flux_ssh,
-    local_file.flux_yaml,
+    data.template_file.flux_yaml,
     kubernetes_namespace.flux,
     time_sleep.sleep_for_cluster_fix_helm_6361,
   ]

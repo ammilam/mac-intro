@@ -3,14 +3,14 @@ resource "google_monitoring_alert_policy" "flux_fatal_alert_policy" {
   project      = var.monitoring_project_id
   display_name = "flux-fatal-alert-policy"
   documentation {
-    content   = "Flux has been deployed intentionally broken, in order to fix this simply correct the secret name in and run ./setup.sh again."
+    content   = "Flux has been deployed intentionally broken, \nin order to fix this simply correct git.secretName under mac-ecosystem/templates/values-files/flux-values.yaml.tpl to 'flux-ssh'. \nAfter making the correction re-run ./setup.sh again to apply the fix."
     mime_type = "text/markdown"
   }
   combiner = "OR"
   conditions {
     condition_threshold {
       aggregations {
-        alignment_period     = "300s"
+        alignment_period     = "60s"
         cross_series_reducer = "REDUCE_MAX"
         per_series_aligner   = "ALIGN_MEAN"
         group_by_fields      = ["resource.label.namespace_name"]

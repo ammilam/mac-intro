@@ -18,7 +18,7 @@ metadata:
   name: hello
   namespace: hello
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: hello-kubernetes
