@@ -366,7 +366,7 @@ locals {
 }
 
 data "template_file" "gitlab_values" {
-  template = "${file("${path.module}/templates/values-files/gitlab-values.yaml.tpl")}"
+  template = file("${path.module}/templates/values-files/gitlab-values.yaml.tpl")
   vars = {
     DOMAIN                = local.domain
     INGRESS_IP            = local.gitlab_address
@@ -429,13 +429,13 @@ locals {
   grafana_address = data.google_compute_address.grafana.address
 }
 resource "time_sleep" "grafana_helm" {
-  create_duration  = "60s"
+  create_duration  = "120s"
   destroy_duration = "10s"
-  depends_on       = [module.gke.endpoint, google_sql_database.gitlabhq_production, helm_release.gitlab]
+  depends_on       = [module.gke.endpoint, google_sql_database.gitlabhq_production, helm_release.gitlab, google_compute_address.grafana]
 }
 # creates values.yaml file to render in prom_stack helmrelease
 data "template_file" "get_dashboards" {
-  template = "${file("${path.module}/templates/scripts/get-dashboard.sh.tpl")}"
+  template = file("${path.module}/templates/scripts/get-dashboard.sh.tpl")
   vars = {
     GRAFANAIP = local.grafana_address
   }
@@ -450,7 +450,7 @@ resource "local_file" "get_dashboards_sh" {
 }
 # creates values.yaml file to render in prom_stack helmrelease
 data "template_file" "prom_stack" {
-  template = "${file("${path.module}/templates/values-files/prom-stack-values.yaml.tpl")}"
+  template = file("${path.module}/templates/values-files/prom-stack-values.yaml.tpl")
   vars = {
     GRAFANAIP = local.grafana_address
   }
@@ -533,7 +533,7 @@ resource "kubernetes_secret" "flux_ssh" {
 
 # creates flux values.yaml file
 data "template_file" "flux_yaml" {
-  template = "${file("${path.module}/templates/values-files/flux-values.yaml.tpl")}"
+  template = file("${path.module}/templates/values-files/flux-values.yaml.tpl")
 
   vars = {
     EMAIL    = var.email_address

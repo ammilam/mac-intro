@@ -87,13 +87,21 @@ then
     read -p "Enter a cluster name: " NAME
 fi
 
-if [[ $(cat terraform.tfstate|jq -r '.outputs.cluster_name.value') ]]
+if [[ -f terraform.tfstate ]]
 then
-    export NAME="$(cat terraform.tfstate|jq -r '.outputs.cluster_name.value')"
-    echo "Your existing cluster is called $NAME"
-    echo ""
-    sleep 2
+    if [[ $(cat terraform.tfstate|jq -r '.outputs.cluster_name.value') != "null" ]]
+    then
+        export NAME="$(cat terraform.tfstate|jq -r '.outputs.cluster_name.value')"
+        echo "Your existing cluster is called $NAME"
+        echo ""
+        sleep 2
+    fi
+    if [[ $(cat terraform.tfstate|jq -r '.outputs.cluster_name.value') == "null" ]]
+    then 
+        read -p "Enter a cluster name: " NAME
+    fi
 fi
+
 
 
 ##################################################

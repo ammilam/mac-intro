@@ -53,21 +53,23 @@ EOF
 fi
 
 # checks if terraform state file exists, if it does - sets the cluster_name to the output in the state file
-if [[ ! -f './terraform.tfstate' ]]
+if [[ ! -f terraform.tfstate ]]
 then
     read -p "Enter a cluster name: " NAME
 fi
 
-if [[ $(cat terraform.tfstate|jq -r '.outputs.cluster_name.value') == "null" ]]
+if [[ -f terraform.tfstate ]]
 then
-    read -p "Enter a cluster name: " NAME
-fi
-
-if [[ -f './terraform.tfstate' ]]
-then
-    export NAME="$(cat terraform.tfstate|jq -r '.outputs.cluster_name.value')"
-    echo "Your existing cluster is called $NAME"
-    echo ""
-    sleep 2
+    if [[ $(cat terraform.tfstate|jq -r '.outputs.cluster_name.value') != "null" ]]
+    then
+        export NAME="$(cat terraform.tfstate|jq -r '.outputs.cluster_name.value')"
+        echo "Your existing cluster is called $NAME"
+        echo ""
+        sleep 2
+    fi
+    if [[ $(cat terraform.tfstate|jq -r '.outputs.cluster_name.value') == "null" ]]
+    then 
+        read -p "Enter a cluster name: " NAME
+    fi
 fi
 terraform plan -var "repo=${REPO}" -var "github_token=${TOKEN}" -var "username=${USERNAME}" -var "email_address=${EMAIL}" -var "cluster_name=${NAME}" -var "project_id=${PROJECT}"
