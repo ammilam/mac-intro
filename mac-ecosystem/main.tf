@@ -606,7 +606,7 @@ resource "helm_release" "prom_stack" {
   repository   = "https://prometheus-community.github.io/helm-charts"
   namespace    = "monitoring"
   chart        = "kube-prometheus-stack"
-  version      = "12.9.2"
+  version      = "12.3.0"
   timeout      = "300"
   force_update = "true"
 
