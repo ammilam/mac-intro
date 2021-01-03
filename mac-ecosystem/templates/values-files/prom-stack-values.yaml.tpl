@@ -1,7 +1,10 @@
 grafana:
-  service:
-    type: LoadBalancer
-    loadBalancerIP: ${GRAFANAIP}
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: "nginx"
+      nginx.ingress.kubernetes.io/affinity: cookie
+      nginx.ingress.kubernetes.io/affinity-mode: persistent
   image:
     repository: grafana/grafana
     tag: 7.2.0
@@ -23,6 +26,12 @@ grafana:
       enabled: true
       defaultDatasourceEnabled: true
 prometheus:
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: "nginx"
+      nginx.ingress.kubernetes.io/affinity: cookie
+      nginx.ingress.kubernetes.io/affinity-mode: persistent
   service:
     type: NodePort
     nodePort: 30090
