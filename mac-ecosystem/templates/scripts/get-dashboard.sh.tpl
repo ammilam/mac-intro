@@ -1,7 +1,7 @@
 #! /bin/bash -e
 
 # sets env
-URL=${GRAFANAIP}
+URL=${NGINXIP}
 
 # ensures that yq and jq are installed
 which yq 2>&1 >/dev/null || (echo "Error, yq executable is required" && exit 1) || exit 1

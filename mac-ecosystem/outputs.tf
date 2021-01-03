@@ -57,8 +57,8 @@ output "location" {
   value = module.gke.location
 }
 
-output "grafana_address" {
-  value = data.google_compute_address.grafana.address
+output "nginx_address" {
+  value = data.google_compute_address.nginx.address
 }
 
 output "project_id" {

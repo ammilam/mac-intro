@@ -64,9 +64,9 @@ variable "gitlab_address_name" {
   default     = ""
 }
 
-variable "grafana_address_name" {
+variable "nginx_address_name" {
   description = "Name of the address to use for GitLab ingress"
-  default     = "grafana"
+  default     = "nginx"
 }
 variable "gitlab_runner_install" {
   description = "Choose whether to install the gitlab runner in the cluster"

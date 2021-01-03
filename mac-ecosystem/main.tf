@@ -119,7 +119,7 @@ resource "google_compute_address" "gitlab" {
   region       = var.region
   address_type = "EXTERNAL"
   description  = "Gitlab Ingress IP"
-  depends_on   = [module.project_services, google_compute_address.grafana]
+  depends_on   = [module.project_services, google_compute_address.nginx]
   count        = var.gitlab_address_name == "" ? 1 : 0
 }
 
@@ -409,69 +409,74 @@ resource "helm_release" "gitlab" {
   ]
 }
 
-data "google_compute_address" "grafana" {
-  name       = var.grafana_address_name
+data "google_compute_address" "nginx" {
+  name       = var.nginx_address_name
   depends_on = [module.project_services]
   region     = var.region
   project    = module.project_services.project_id
 }
 
 # # generates scripts to dynamically create kubernetes definitions for dashboards and notification channels
-# resource "template_dir" "grafana_scripts" {
+# resource "template_dir" "nginx_scripts" {
 #   source_dir      = "${path.module}/templates/scripts"
 #   destination_dir = "${path.cwd}/grafana-as-code"
 #   vars = {
-#     GRAFANAIP = data.google_compute_address.grafana.address
+#     NGINXIP = data.google_compute_address.nginx.address
 #   }
 # }
 
 locals {
-  grafana_address = data.google_compute_address.grafana.address
+  nginx_address = data.google_compute_address.nginx.address
 }
-resource "time_sleep" "grafana_helm" {
-  create_duration  = "120s"
-  destroy_duration = "10s"
-  depends_on       = [module.gke.endpoint, google_compute_address.grafana]
-}
+
+
 # creates values.yaml file to render in prom_stack helmrelease
 data "template_file" "get_dashboards" {
   template = file("${path.module}/templates/scripts/get-dashboard.sh.tpl")
   vars = {
-    GRAFANAIP = local.grafana_address
+    NGINXIP = local.nginx_address
   }
-  depends_on = [google_compute_address.grafana, time_sleep.grafana_helm]
+  depends_on = [google_compute_address.nginx]
+}
+data "template_file" "ingress_nginx" {
+  template = file("${path.module}/templates/values-files/ingress-nginx.yaml.tpl")
+  vars = {
+    NGINXIP = local.nginx_address
+  }
+  depends_on = [
+    google_compute_address.nginx
+  ]
 }
 
+resource "time_sleep" "nginx_helm" {
+  create_duration  = "120s"
+  destroy_duration = "10s"
+  depends_on = [
+    module.gke.endpoint,
+    google_compute_address.nginx,
+    data.template_file.ingress_nginx
+  ]
+}
 # creates a local copy of values.yaml file to reference outside of terraform automation
 resource "local_file" "get_dashboards_sh" {
   content    = data.template_file.get_dashboards.rendered
   filename   = "${path.module}/releases/prom-stack/dashboards/get-dashboard.sh"
-  depends_on = [data.template_file.prom_stack, time_sleep.grafana_helm]
-}
-# creates values.yaml file to render in prom_stack helmrelease
-data "template_file" "prom_stack" {
-  template = file("${path.module}/templates/values-files/prom-stack-values.yaml.tpl")
-  vars = {
-    GRAFANAIP = local.grafana_address
-  }
-  depends_on = [
-    google_compute_address.grafana,
-    time_sleep.grafana_helm,
-  ]
+  depends_on = [time_sleep.nginx_helm]
 }
 
-# creates a local copy of values.yaml file to reference outside of terraform automation
-resource "local_file" "prom_stack_yaml" {
-  content  = data.template_file.prom_stack.rendered
-  filename = "${path.module}/values-files/prom-stack-values.yaml"
+
+resource "local_file" "ingress_nginx_yaml" {
+  content  = data.template_file.ingress_nginx.rendered
+  filename = "${path.module}/values-files/ingress-nginx.yaml"
   depends_on = [
-    data.template_file.prom_stack,
-    google_compute_address.grafana,
-    time_sleep.grafana_helm,
+    google_compute_address.nginx,
+    data.template_file.ingress_nginx,
+    time_sleep.nginx_helm,
     local_file.get_dashboards_sh,
     helm_release.helm_operator
   ]
 }
+
 
 ############################
 ### Helm Operator Config ###
@@ -575,18 +580,37 @@ resource "helm_release" "fluxcd" {
   ]
 }
 
+resource "helm_release" "ingress_nginx" {
+  name         = "ingress-nginx"
+  repository   = "https://kubernetes.github.io/ingress-nginx"
+  namespace    = "nginx"
+  chart        = "ingress-nginx"
+  version      = "3.19.0"
+  timeout      = "300"
+  force_update = "true"
+
+  values = [
+    "${data.template_file.ingress_nginx.rendered}"
+  ]
+  depends_on = [
+    time_sleep.nginx_helm,
+    kubernetes_namespace.nginx,
+    google_compute_address.nginx,
+    data.template_file.ingress_nginx,
+  ]
+}
 
 ################################
 ### Prometheus Stack Configs ###
 ################################
 
-# creates grafana external IP
-resource "google_compute_address" "grafana" {
-  name         = var.grafana_address_name
+# creates nginx external IP
+resource "google_compute_address" "nginx" {
+  name         = var.nginx_address_name
   project      = module.project_services.project_id
   region       = var.region
   address_type = "EXTERNAL"
-  description  = "Grafana Ingress IP"
+  description  = "Nginx Ingress IP"
   depends_on   = [module.project_services]
 }
 
@@ -598,7 +622,13 @@ resource "kubernetes_namespace" "monitoring" {
   depends_on = [time_sleep.sleep_for_cluster_fix_helm_6361]
 }
 
-# makes grafana external IP address created above referencable by template_dir and template_file
+# creates monitoring namespace
+resource "kubernetes_namespace" "nginx" {
+  metadata {
+    name = "nginx"
+  }
+  depends_on = [time_sleep.sleep_for_cluster_fix_helm_6361]
+}
 
 # deploys prom_stack helmrelease
 resource "helm_release" "prom_stack" {
@@ -611,14 +641,11 @@ resource "helm_release" "prom_stack" {
   force_update = "true"
 
   values = [
-    "${data.template_file.prom_stack.rendered}"
+    "${path.module}/values-files/prom-stack-values.yaml"
   ]
   depends_on = [
-    time_sleep.grafana_helm,
+    time_sleep.nginx_helm,
     kubernetes_namespace.monitoring,
-    google_compute_address.grafana,
-    data.template_file.prom_stack,
-    local_file.prom_stack_yaml,
-    time_sleep.grafana_helm
   ]
 }
+

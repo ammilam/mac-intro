@@ -47,8 +47,8 @@ output "root_password_instructions" {
   value = module.mac-ecosystem.root_password_instructions
 }
 
-output "grafana_address" {
-  value = module.mac-ecosystem.grafana_address
+output "nginx_address" {
+  value = module.mac-ecosystem.nginx_address
 }
 
 output "location" {
