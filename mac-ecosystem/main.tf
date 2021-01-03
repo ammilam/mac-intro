@@ -431,7 +431,7 @@ locals {
 resource "time_sleep" "grafana_helm" {
   create_duration  = "120s"
   destroy_duration = "10s"
-  depends_on       = [module.gke.endpoint, google_sql_database.gitlabhq_production, helm_release.gitlab, google_compute_address.grafana]
+  depends_on       = [module.gke.endpoint, google_compute_address.grafana]
 }
 # creates values.yaml file to render in prom_stack helmrelease
 data "template_file" "get_dashboards" {
@@ -445,7 +445,7 @@ data "template_file" "get_dashboards" {
 # creates a local copy of values.yaml file to reference outside of terraform automation
 resource "local_file" "get_dashboards_sh" {
   content    = data.template_file.get_dashboards.rendered
-  filename   = "${path.module}/grafana-as-code/dashboards/get-dashboard.sh"
+  filename   = "${path.module}/releases/prom-stack/dashboards/get-dashboard.sh"
   depends_on = [data.template_file.prom_stack, time_sleep.grafana_helm]
 }
 # creates values.yaml file to render in prom_stack helmrelease
@@ -456,7 +456,7 @@ data "template_file" "prom_stack" {
   }
   depends_on = [
     google_compute_address.grafana,
-    time_sleep.grafana_helm
+    time_sleep.grafana_helm,
   ]
 }
 
@@ -467,7 +467,9 @@ resource "local_file" "prom_stack_yaml" {
   depends_on = [
     data.template_file.prom_stack,
     google_compute_address.grafana,
-    time_sleep.grafana_helm
+    time_sleep.grafana_helm,
+    local_file.get_dashboards_sh,
+    helm_release.helm_operator
   ]
 }
 
@@ -485,7 +487,9 @@ resource "helm_release" "helm_operator" {
     "${file("${path.module}/values-files/helm-operator-values.yaml")}"
   ]
   depends_on = [
-    kubernetes_secret.flux_ssh, kubernetes_namespace.flux, time_sleep.sleep_for_cluster_fix_helm_6361
+    kubernetes_secret.flux_ssh,
+    kubernetes_namespace.flux,
+    time_sleep.sleep_for_cluster_fix_helm_6361
   ]
 }
 
@@ -512,7 +516,10 @@ resource "kubernetes_namespace" "flux" {
   metadata {
     name = "flux"
   }
-  depends_on = [time_sleep.sleep_for_cluster_fix_helm_6361]
+  depends_on = [
+    time_sleep.sleep_for_cluster_fix_helm_6361,
+
+  ]
 }
 
 # creates kubernetes secret for flux to pull changes from github and sync with gke
@@ -599,7 +606,7 @@ resource "helm_release" "prom_stack" {
   repository   = "https://prometheus-community.github.io/helm-charts"
   namespace    = "monitoring"
   chart        = "kube-prometheus-stack"
-  version      = "12.3.0"
+  version      = "12.9.2"
   timeout      = "300"
   force_update = "true"
 
