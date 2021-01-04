@@ -53,6 +53,15 @@ git config --global user.name "USERNAME" # enter your github username here
 Enter a github personal access token: # enter your github personal access token here
 ```
 
+**NOTE** If you see the error below, simply rerun `./setup.sh`.
+```
+
+Error: failed to render : <template_file>:692,23-30: Unknown variable; There is no variable named "NGINXIP".
+
+  on mac-ecosystem/main.tf line 452, in data "template_file" "ingress_nginx":
+ 452: data "template_file" "ingress_nginx" {
+```
+
 This will create a GKE cluster, deploy Gitlab, and hook up an intentionally broken [flux](https://fluxcd.io/) with corresponding gcp custom logging metric and alert policy that contains instructions on how to fix the "problem". Once operational, flux will hook up to this forked Github repo and deploy any kubernetes resource definitons or helmreleses contained under `/mac-ecosystem/releases`. This is intended to give people insight into what a montioring as code ecosystem looks like.
 
 #### Resources Deployed By Flux

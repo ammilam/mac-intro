@@ -427,37 +427,31 @@ data "google_compute_address" "nginx" {
   project    = module.project_services.project_id
 }
 
-# # generates scripts to dynamically create kubernetes definitions for dashboards and notification channels
-# resource "template_dir" "nginx_scripts" {
-#   source_dir      = "${path.module}/templates/scripts"
-#   destination_dir = "${path.cwd}/grafana-as-code"
-#   vars = {
-#     NGINXIP = data.google_compute_address.nginx.address
-#   }
-# }
-
 locals {
   nginx_address = data.google_compute_address.nginx.address
 }
 
-
-# creates values.yaml file to render in prom_stack helmrelease
-data "template_file" "get_dashboards" {
-  template = file("${path.module}/templates/scripts/get-dashboard.sh.tpl")
-  vars = {
-    NGINXIP = local.nginx_address
-  }
-  depends_on = [google_compute_address.nginx, time_sleep.nginx_helm]
-}
 data "template_file" "ingress_nginx" {
   template = file("${path.module}/templates/values-files/ingress-nginx.yaml.tpl")
   vars = {
     NGINXIP = local.nginx_address
   }
   depends_on = [
+    google_compute_address.nginx
+    ]
+}
+data "template_file" "get_dashboards" {
+  template = file("${path.module}/templates/scripts/get-dashboard.sh.tpl")
+  vars = {
+    NGINXIP = local.nginx_address
+  }
+  depends_on = [
     google_compute_address.nginx,
+  time_sleep.nginx_helm,
+  data.template_file.ingress_nginx
   ]
 }
+
 
 # data "template_file" "prom_stack" {
 #   template = file("${path.module}/templates/values-files/prom-stack-values.yaml.tpl")
@@ -475,7 +469,6 @@ resource "time_sleep" "nginx_helm" {
   depends_on = [
     module.gke.endpoint,
     google_compute_address.nginx,
-    data.template_file.ingress_nginx
   ]
 }
 
