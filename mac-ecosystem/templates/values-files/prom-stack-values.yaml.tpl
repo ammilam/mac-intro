@@ -563,7 +563,7 @@ alertmanager:
 
 
 ## Using default values from https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml
-## 
+##
 grafana:
   enabled: true
   namespaceOverride: ""
@@ -577,7 +577,7 @@ grafana:
   ingress:
     ## If true, Grafana Ingress will be created
     ##
-    enabled: false
+    enabled: true
 
     ## Annotations for Grafana Ingress
     ##
@@ -593,12 +593,12 @@ grafana:
     ## Must be provided if Ingress is enable.
     ##
     # hosts:
-    #   - grafana.domain.com
-    # hosts:
-    # - 34.68.126.206
+    # #   - grafana.domain.com
+    #  hosts: 
+    #   - ${NGINXIP}
 
     ## Path for grafana ingress
-    #path:
+    path: /grafana
 
     ## TLS configuration for grafana Ingress
     ## Secret must be manually created in the namespace
@@ -1564,9 +1564,11 @@ prometheus:
 
     # For Kubernetes >= 1.18 you should specify the ingress-controller via the field ingressClassName
     # See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress
-    #ingressClassName: nginx
+    ingressClassName: nginx
 
-    annotations: {}
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      kubernetes.io/tls-acme: "true"
     labels: {}
 
     ## Hostnames.
@@ -1578,8 +1580,8 @@ prometheus:
 
     ## Paths to use for ingress rules - one path should match the prometheusSpec.routePrefix
     ##
-    paths: []
-    # - /
+    # paths:
+    #  - /prometheus
 
     ## TLS configuration for Prometheus Ingress
     ## Secret must be manually created in the namespace

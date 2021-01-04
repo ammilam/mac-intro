@@ -448,15 +448,35 @@ data "template_file" "ingress_nginx" {
   ]
 }
 
+# data "template_file" "prom_stack" {
+#   template = file("${path.module}/templates/values-files/prom-stack-values.yaml.tpl")
+#   vars = {
+#     NGINXIP = local.nginx_address
+#   }
+#   depends_on = [
+#     google_compute_address.nginx
+#   ]
+# }
+
 resource "time_sleep" "nginx_helm" {
   create_duration  = "120s"
   destroy_duration = "10s"
   depends_on = [
     module.gke.endpoint,
     google_compute_address.nginx,
-    data.template_file.ingress_nginx
+    data.template_file.ingress_nginx,
   ]
 }
+
+# resource "local_file" "prom_stack_yaml" {
+#   content  = data.template_file.ingress_nginx.rendered
+#   filename = "${path.module}/values-files/prom-stack-values.yaml"
+#   depends_on = [
+#     google_compute_address.nginx,
+#     time_sleep.nginx_helm
+#   ]
+# }
+
 # creates a local copy of values.yaml file to reference outside of terraform automation
 resource "local_file" "get_dashboards_sh" {
   content    = data.template_file.get_dashboards.rendered
@@ -477,6 +497,21 @@ resource "local_file" "ingress_nginx_yaml" {
   ]
 }
 
+resource "helm_release" "cert_manager" {
+  name       = "cert-manager"
+  namespace  = "cert-manager"
+  repository = "https://charts.jetstack.io"
+  chart      = "cert-manager"
+  version    = "1.1.0"
+
+  values = [
+    "${file("${path.module}/values-files/cert-manager-values.yaml")}"
+  ]
+  depends_on = [
+    kubernetes_namespace.cert_manager,
+    time_sleep.sleep_for_cluster_fix_helm_6361
+  ]
+}
 
 ############################
 ### Helm Operator Config ###
@@ -520,6 +555,17 @@ resource "github_repository_deploy_key" "mac_intro_repo" {
 resource "kubernetes_namespace" "flux" {
   metadata {
     name = "flux"
+  }
+  depends_on = [
+    time_sleep.sleep_for_cluster_fix_helm_6361,
+
+  ]
+}
+
+# creates flux namespace
+resource "kubernetes_namespace" "cert_manager" {
+  metadata {
+    name = "cert-manager"
   }
   depends_on = [
     time_sleep.sleep_for_cluster_fix_helm_6361,
@@ -641,7 +687,7 @@ resource "helm_release" "prom_stack" {
   force_update = "true"
 
   values = [
-    "${path.module}/values-files/prom-stack-values.yaml"
+    "${file("${path.module}/values-files/prom-stack-values.yaml")}"
   ]
   depends_on = [
     time_sleep.nginx_helm,
