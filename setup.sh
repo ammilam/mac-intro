@@ -60,7 +60,7 @@ fi
 ##################################################
 ##### Service Account Creation For Terraform #####
 ##################################################
-SA_NAME="terraform"
+SA_NAME="${PROJECT:0:15}-tf"
 GCP_USER=$(gcloud config get-value account)
 
 if [[ -z $(gcloud iam service-accounts list|grep $SA_NAME) ]]
@@ -69,6 +69,7 @@ then
 fi
 
 gcloud projects add-iam-policy-binding $PROJECT --member="user:${GCP_USER}" --role="roles/owner"
+gcloud projects add-iam-policy-binding $PROJECT --member="user:${GCP_USER}" --role="roles/iam.serviceAccountTokenCreator"
 gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${SA_NAME}@${PROJECT}.iam.gserviceaccount.com" --role="roles/owner"
 gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${SA_NAME}@${PROJECT}.iam.gserviceaccount.com" --role="roles/storage.admin"
 gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${SA_NAME}@${PROJECT}.iam.gserviceaccount.com" --role="roles/storage.objectAdmin"
