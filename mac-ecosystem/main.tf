@@ -436,7 +436,7 @@ data "template_file" "get_dashboards" {
   vars = {
     NGINXIP = local.nginx_address
   }
-  depends_on = [google_compute_address.nginx]
+  depends_on = [google_compute_address.nginx, time_sleep.nginx_helm]
 }
 data "template_file" "ingress_nginx" {
   template = file("${path.module}/templates/values-files/ingress-nginx.yaml.tpl")
@@ -444,7 +444,7 @@ data "template_file" "ingress_nginx" {
     NGINXIP = local.nginx_address
   }
   depends_on = [
-    google_compute_address.nginx
+    google_compute_address.nginx,
   ]
 }
 
@@ -464,7 +464,7 @@ resource "time_sleep" "nginx_helm" {
   depends_on = [
     module.gke.endpoint,
     google_compute_address.nginx,
-    data.template_file.ingress_nginx,
+    data.template_file.ingress_nginx
   ]
 }
 
@@ -480,8 +480,8 @@ resource "time_sleep" "nginx_helm" {
 # creates a local copy of values.yaml file to reference outside of terraform automation
 resource "local_file" "get_dashboards_sh" {
   content    = data.template_file.get_dashboards.rendered
-  filename   = "${path.module}/releases/prom-stack/dashboards/get-dashboard.sh"
-  depends_on = [time_sleep.nginx_helm]
+  filename   = "${path.module}/releases/kube-prometheus-stack/dashboards/get-dashboard.sh"
+  depends_on = [time_sleep.nginx_helm, data.template_file.ingress_nginx]
 }
 
 
@@ -492,7 +492,6 @@ resource "local_file" "ingress_nginx_yaml" {
     google_compute_address.nginx,
     data.template_file.ingress_nginx,
     time_sleep.nginx_helm,
-    local_file.get_dashboards_sh,
     helm_release.helm_operator
   ]
 }

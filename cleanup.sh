@@ -1,22 +1,35 @@
 #! /bin/bash
 # this script is intended to clean up the resources created by the setup.sh
-REGION=$(cat terraform.tfstate|jq -r '.outputs.location.value')
-REPO=$(cat terraform.tfstate|jq -r '.outputs.repo.value')
+
+#####################
+### Set Variables ###
+#####################
+REGION=$(terraform output region)
+REPO=$(terraform output repo)
 TOKEN=$(cat token)
-USERNAME=$(cat terraform.tfstate|jq -r '.outputs.username.value')
+USERNAME=$(terraform output username)
 SA_NAME=account.json
-EMAIL=$(cat terraform.tfstate|jq -r '.outputs.email.value')
-NAME=$(cat terraform.tfstate|jq -r '.outputs.cluster_name.value')
-PROJECT=$(cat terraform.tfstate|jq -r '.outputs.project_id.value')
+EMAIL=$(terraform output email)
+NAME=$(terraform output cluster_name)
+PROJECT=$(terraform output project_id)
+
 export GOOGLE_APPLICATION_CREDENTIALS=./$SA_NAME
+
 terraform destroy -var "google_credentials=${SA_NAME}" -var "repo=${REPO}" -var "github_token=${TOKEN}" -var "username=${USERNAME}" -var "email_address=${EMAIL}" -var "cluster_name=${NAME}" -var "project_id=${PROJECT}" -auto-approve
-for d in $(gcloud compute disks list|awk 'NR>1 {print $1 $2}'); do gcloud compute disks delete $1 --zone=$2 ; done
+
+gcloud compute disks list --format=json|grep $NAME|
+jq --raw-output '.[] | "\(.name)|\(.zone)"' $PDB_FILE|
+while IFS="|" read -r name zone; do
+echo name=$name zone=$(echo $zone|awk '{print $NF}' FS=/)
+gcloud compute disks delete $name --zone=$zone
+done
+
 read -p 'Do you want to delete the Service Account json? ' p
 if [[ $p == 'y' ]]
-then 
+then
     rm ./$SA_NAME
 fi
 if [[ $p == 'n' ]]
-then 
+then
     exit 1
 fi

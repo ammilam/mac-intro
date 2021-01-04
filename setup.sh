@@ -25,31 +25,12 @@ echo ""
 
 # sets git specific variables
 export URL="$(git config --get remote.origin.url)"
-export EMAIL="$(git config --get user.email)"
-
-
-###############################
-##### Sets Email Variable #####
-###############################
-if [[ -z $EMAIL ]]
-then
-    echo ""
-    echo "This implmentation relies on git and requires having global user specific variables set."
-    echo "Before executing run the following: "
-    echo "
-    git config --global user.email \"EMAIL\"
-    git config --global user.name \"USERNAME\"
-    "
-    echo ""
-    sleep 2
-    exit 0
-fi
+export EMAIL="$(gcloud config get-value account)"
 
 
 ####################################
 ##### Git Hub & Repo Variables #####
 ####################################
-echo "Your Git user.email global variable is set to : $EMAIL"
 echo ""
 sleep 2
 basename=$(basename $URL)
@@ -126,10 +107,13 @@ fi
 # checks if terraform state file exists, if it does - sets the cluster_name to the output in the state file
 terraform init
 
+echo "checking if a local copy of terraform.tfstate exists"
+echo ""
+
 if [[ ! -f terraform.tfstate ]]
 then
     if [[ $(terraform state pull|jq '.resources') == "[]" ]]
-    then 
+    then
         read -p "Enter a cluster name: " NAME
     fi
 fi
