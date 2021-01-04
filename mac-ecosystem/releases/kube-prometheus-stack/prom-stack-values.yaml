@@ -590,13 +590,13 @@ spec:
       ingress:
         ## If true, Grafana Ingress will be created
         ##
-        enabled: false
+        enabled: true
 
         ## Annotations for Grafana Ingress
         ##
-        # annotations:
-        #   kubernetes.io/ingress.class: nginx
-        #   kubernetes.io/tls-acme: "true"
+        annotations:
+          kubernetes.io/ingress.class: nginx
+          kubernetes.io/tls-acme: "true"
 
         ## Labels to be added to the Ingress
         ##
