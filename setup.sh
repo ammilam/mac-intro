@@ -69,12 +69,10 @@ then
 fi
 
 gcloud projects add-iam-policy-binding $PROJECT --member="user:${GCP_USER}" --role="roles/owner"
-gcloud projects add-iam-policy-binding $PROJECT --member="user:${GCP_USER}" --role="roles/storage.admin"
 gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${SA_NAME}@${PROJECT}.iam.gserviceaccount.com" --role="roles/owner"
-if [[ ! -f "account.json" ]]
-then
-    gcloud iam service-accounts keys create ./"account.json" --iam-account "${SA_NAME}@${PROJECT}.iam.gserviceaccount.com"
-fi
+gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${SA_NAME}@${PROJECT}.iam.gserviceaccount.com" --role="roles/storage.admin"
+gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${SA_NAME}@${PROJECT}.iam.gserviceaccount.com" --role="roles/storage.objectAdmin"
+gcloud iam service-accounts keys create ./"account.json" --iam-account "${SA_NAME}@${PROJECT}.iam.gserviceaccount.com"
 
 
 ###############################################

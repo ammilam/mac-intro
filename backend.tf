@@ -1,7 +1,7 @@
 
 terraform {
-  backend "gcs" {
-    bucket      = "named-nomad-300702-terraform-state"
+  backend "gcs"{
+    bucket      = "one-last-test-project-terraform-state"
     prefix      = "sandbox"
     credentials = "account.json"
   }
