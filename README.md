@@ -38,7 +38,7 @@ Note: I recommend running this through Cloud Shell from within GCP as mentioned 
     2. In the toolbar, select your Google Cloud project by using the project selector.
     3. In the Cloud Console navigation menu, click Monitoring.
 
-`note: At this time Google doesnt offer a way to easily enable the montioring workspace using terraform or the api, so this part is manual)`
+    **note:** At this time Google doesnt offer a way to easily enable the montioring workspace using terraform or the api, so this part is manual)
 6. Execute the following in the repo cloned locally
 
 ```bash
