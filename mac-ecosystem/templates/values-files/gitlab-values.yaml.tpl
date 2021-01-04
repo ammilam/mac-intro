@@ -3,14 +3,14 @@ global:
   edition: ce
   hosts:
     domain: ${DOMAIN}
-    https: true
+    https: false
     gitlab: {}
     externalIP: ${INGRESS_IP}
     ssh: ~
 
   ## doc/charts/globals.md#configure-ingress-settings
   ingress:
-    configureCertmanager: false
+    configureCertmanager: true
     enabled: true
     tls:
       enabled: true
