@@ -60,7 +60,7 @@ fi
 ##################################################
 ##### Service Account Creation For Terraform #####
 ##################################################
-SA_NAME="terraform-${PROJECT}"
+SA_NAME="terraform"
 GCP_USER=$(gcloud config get-value account)
 
 if [[ -z $(gcloud iam service-accounts list|grep $SA_NAME) ]]
