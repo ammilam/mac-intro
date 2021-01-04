@@ -1,7 +1,6 @@
-apiVersion: cert-manager.io/v1
-kind: Issuer
+apiVersion: cert-manager.io/v1alpha2
+kind: ClusterIssuer
 metadata:
-  name: selfsigned-issuer
+  name: letsencrypt-prod
   namespace: cert-manager
-spec:
-  selfSigned: {}
+spec: {}
