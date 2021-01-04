@@ -497,21 +497,21 @@ resource "local_file" "ingress_nginx_yaml" {
   ]
 }
 
-resource "helm_release" "cert_manager" {
-  name       = "cert-manager"
-  namespace  = "cert-manager"
-  repository = "https://charts.jetstack.io"
-  chart      = "cert-manager"
-  version    = "1.1.0"
+# resource "helm_release" "cert_manager" {
+#   name       = "cert-manager"
+#   namespace  = "cert-manager"
+#   repository = "https://charts.jetstack.io"
+#   chart      = "cert-manager"
+#   version    = "1.1.0"
 
-  values = [
-    "${file("${path.module}/values-files/cert-manager-values.yaml")}"
-  ]
-  depends_on = [
-    kubernetes_namespace.cert_manager,
-    time_sleep.sleep_for_cluster_fix_helm_6361
-  ]
-}
+#   values = [
+#     "${file("${path.module}/values-files/cert-manager-values.yaml")}"
+#   ]
+#   depends_on = [
+#     kubernetes_namespace.cert_manager,
+#     time_sleep.sleep_for_cluster_fix_helm_6361
+#   ]
+# }
 
 ############################
 ### Helm Operator Config ###
@@ -537,7 +537,7 @@ resource "helm_release" "helm_operator" {
 ### Flux Config ###
 ###################
 
-# creates key for flux & github 
+# creates key for flux & github
 resource "tls_private_key" "mac_deploy_key" {
   algorithm = "RSA"
   rsa_bits  = 4096
@@ -562,16 +562,15 @@ resource "kubernetes_namespace" "flux" {
   ]
 }
 
-# creates flux namespace
-resource "kubernetes_namespace" "cert_manager" {
-  metadata {
-    name = "cert-manager"
-  }
-  depends_on = [
-    time_sleep.sleep_for_cluster_fix_helm_6361,
+# resource "kubernetes_namespace" "cert_manager" {
+#   metadata {
+#     name = "cert-manager"
+#   }
+#   depends_on = [
+#     time_sleep.sleep_for_cluster_fix_helm_6361,
 
-  ]
-}
+#   ]
+# }
 
 # creates kubernetes secret for flux to pull changes from github and sync with gke
 resource "kubernetes_secret" "flux_ssh" {
@@ -646,9 +645,6 @@ resource "helm_release" "ingress_nginx" {
   ]
 }
 
-################################
-### Prometheus Stack Configs ###
-################################
 
 # creates nginx external IP
 resource "google_compute_address" "nginx" {
@@ -661,14 +657,6 @@ resource "google_compute_address" "nginx" {
 }
 
 # creates monitoring namespace
-resource "kubernetes_namespace" "monitoring" {
-  metadata {
-    name = "monitoring"
-  }
-  depends_on = [time_sleep.sleep_for_cluster_fix_helm_6361]
-}
-
-# creates monitoring namespace
 resource "kubernetes_namespace" "nginx" {
   metadata {
     name = "nginx"
@@ -677,21 +665,21 @@ resource "kubernetes_namespace" "nginx" {
 }
 
 # deploys prom_stack helmrelease
-resource "helm_release" "prom_stack" {
-  name         = "kube-prometheus-stack"
-  repository   = "https://prometheus-community.github.io/helm-charts"
-  namespace    = "monitoring"
-  chart        = "kube-prometheus-stack"
-  version      = "12.3.0"
-  timeout      = "300"
-  force_update = "true"
+# resource "helm_release" "prom_stack" {
+#   name         = "kube-prometheus-stack"
+#   repository   = "https://prometheus-community.github.io/helm-charts"
+#   namespace    = "monitoring"
+#   chart        = "kube-prometheus-stack"
+#   version      = "12.3.0"
+#   timeout      = "300"
+#   force_update = "true"
 
-  values = [
-    "${file("${path.module}/values-files/prom-stack-values.yaml")}"
-  ]
-  depends_on = [
-    time_sleep.nginx_helm,
-    kubernetes_namespace.monitoring,
-  ]
-}
+#   values = [
+#     "${file("${path.module}/values-files/prom-stack-values.yaml")}"
+#   ]
+#   depends_on = [
+#     time_sleep.nginx_helm,
+#     kubernetes_namespace.monitoring,
+#   ]
+# }
 
