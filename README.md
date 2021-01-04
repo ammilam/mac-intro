@@ -31,14 +31,15 @@ Note: I recommend running this through Cloud Shell from within GCP as mentioned 
 
 1. Fork and clone down this repository
 2. Get a github [personal access token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) with the `repo` scope selected
-3. Create a new gcp project - [Documentation](https://cloud.google.com/resource-manager/docs/creating-managing-projects)
-4. Enable the Monitoring Workspace by doing the following
+3. Create a new gcp project in [Cloud Console](https://console.cloud.google.com/) - [Documentation](https://cloud.google.com/resource-manager/docs/creating-managing-projects)
+4. Set your gcloud config by running `gcloud config set project GCP_PROJECT_ID` - replace GCP_PROJECT_ID with the newly created GCP project's project id.
+5. Enable the Monitoring Workspace by doing the following
     1. Go to the [Cloud Console](https://console.cloud.google.com/)
     2. In the toolbar, select your Google Cloud project by using the project selector.
     3. In the Cloud Console navigation menu, click Monitoring.
 
         `note: At this time Google doesnt offer a way to easily enable the montioring workspace using terraform or the api, so this part is manual)`
-5. Execute the following in the repo cloned locally
+6. Execute the following in the repo cloned locally
 
 ```bash
 # configure git user variables (enter your name and the account associated with github)
