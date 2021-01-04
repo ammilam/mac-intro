@@ -9,7 +9,6 @@
 which jq 2>&1 >/dev/null || (echo "Error, jq executable is required" && exit 1) || exit 1
 which terraform 2>&1 >/dev/null || (echo "Error, terracorm executable is required" && exit 1) || exit 1
 which gcloud 2>&1 >/dev/null || (echo "Error, gcloud executable is required" && exit 1) || exit 1
-terraform state pull> terraform.tfstate
 
 
 #####################################
@@ -77,33 +76,6 @@ then
 fi
 
 
-##################################################################
-##### Abstracting Existing Cluster Name From Terraform State #####
-##################################################################
-# checks if terraform state file exists, if it does - sets the cluster_name to the output in the state file
-
-
-if [[ ! -f terraform.tfstate ]]
-then
-    read -p "Enter a cluster name: " NAME
-fi
-
-if [[ -f terraform.tfstate ]]
-then
-    if [[ $(cat terraform.tfstate|jq -r '.outputs.cluster_name.value') != "null" ]]
-    then
-        export NAME="$(cat terraform.tfstate|jq -r '.outputs.cluster_name.value')"
-        echo "Your existing cluster is called $NAME"
-        echo ""
-        sleep 2
-    fi
-    if [[ $(cat terraform.tfstate|jq -r '.outputs.cluster_name.value') == "null" ]]
-    then 
-        read -p "Enter a cluster name: " NAME
-    fi
-fi
-
-
 ##################################################
 ##### Service Account Creation For Terraform #####
 ##################################################
@@ -118,17 +90,17 @@ fi
 gcloud projects add-iam-policy-binding $PROJECT --member="user:${GCP_USER}" --role="roles/owner"
 gcloud projects add-iam-policy-binding $PROJECT --member="user:${GCP_USER}" --role="roles/storage.admin"
 gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${SA_NAME}@${PROJECT}.iam.gserviceaccount.com" --role="roles/owner"
-
 if [[ ! -f "account.json" ]]
 then
     gcloud iam service-accounts keys create ./"account.json" --iam-account "${SA_NAME}@${PROJECT}.iam.gserviceaccount.com"
 fi
 
+
 ###############################################
 ##### Sets Google Application Credentials #####
 ###############################################
 
-export GOOGLE_APPLICATION_CREDENTIALS="${SA_NAME}.json"
+export GOOGLE_APPLICATION_CREDENTIALS="account.json"
 
 ##################################################
 ##### Terraform Remote State Bucket Creation #####
@@ -144,20 +116,57 @@ terraform {
 " > backend.tf
 
 if [[ -z $(gsutil ls|grep $PROJECT-terraform-state) ]]
-then 
+then
     gsutil mb gs://$PROJECT-terraform-state
+fi
+
+##################################################################
+##### Abstracting Existing Cluster Name From Terraform State #####
+##################################################################
+# checks if terraform state file exists, if it does - sets the cluster_name to the output in the state file
+
+terraform init
+terraform fmt --recursive
+
+if [[ ! -f terraform.tfstate ]]
+then
+    if [[ $(terraform output cluster_name) == *"The state file either has no outputs defined"* ]];
+    then read -p "Enter a cluster name: " NAME
+    fi
+fi
+
+if [[ ! -f terraform.tfstate ]]
+then
+    if [[ $(terraform output cluster_name) != *"The state file either has no outputs defined"* ]];
+    then export NAME=$(terraform output cluster_name)
+        echo "Your existing cluster is called $NAME"
+        echo ""
+        sleep 2
+    fi
+fi
+if [[ -f terraform.tfstate ]]
+then
+    if [[ $(cat terraform.tfstate|jq -r '.outputs.cluster_name.value') != "null" ]]
+    then
+        export NAME="$(cat terraform.tfstate|jq -r '.outputs.cluster_name.value')"
+        echo "Your existing cluster is called $NAME"
+        echo ""
+        sleep 2
+    fi
+    if [[ $(cat terraform.tfstate|jq -r '.outputs.cluster_name.value') == "null" ]]
+    then
+        read -p "Enter a cluster name: " NAME
+    fi
 fi
 
 ##########################################
 ##### Terraform Apply With Variables #####
 ##########################################
 echo ""
-terraform fmt --recursive
-terraform init
 sleep 5
 terraform apply -var "google_credentials=${GOOGLE_APPLICATION_CREDENTIALS}" -var "repo=${REPO}" -var "github_token=${TOKEN}" -var "username=${USERNAME}" -var "email_address=${EMAIL}" -var "cluster_name=${NAME}" -var "project_id=${PROJECT}" -auto-approve
 sleep 5
-terraform state pull> terraform.tfstate
+terraform state pull > terraform.tfstate
 
 ##################################################
 ##### Sets Kubernetes Context To GKE CLuster #####

@@ -10,7 +10,7 @@ global:
 
   ## doc/charts/globals.md#configure-ingress-settings
   ingress:
-    configureCertmanager: true
+    configureCertmanager: false
     enabled: true
     tls:
       enabled: true

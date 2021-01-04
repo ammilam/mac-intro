@@ -4,7 +4,7 @@ provider "google" {
 }
 
 provider "google-beta" {
-  project = var.project_id
+  project     = var.project_id
   credentials = data.local_file.credentials.content
 }
 
