@@ -31,13 +31,14 @@ Note: I recommend running this through Cloud Shell from within GCP as mentioned 
 
 1. Fork and clone down this repository
 2. Get a github [personal access token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) with the `repo` scope selected
-3. Enable the Monitoring Workspace by doing the following
+3. Create a new gcp project - [Documentation](https://cloud.google.com/resource-manager/docs/creating-managing-projects)
+4. Enable the Monitoring Workspace by doing the following
     1. Go to the [Cloud Console](https://console.cloud.google.com/)
     2. In the toolbar, select your Google Cloud project by using the project selector.
-    3. In the Cloud Console navigation menu, click Monitoring. 
-    
+    3. In the Cloud Console navigation menu, click Monitoring.
+
         `note: At this time Google doesnt offer a way to easily enable the montioring workspace using terraform or the api, so this part is manual)`
-3. Execute the following in the repo cloned locally
+5. Execute the following in the repo cloned locally
 
 ```bash
 # configure git user variables (enter your name and the account associated with github)
@@ -51,7 +52,12 @@ git config --global user.name "USERNAME" # enter your github username here
 Enter a github personal access token: # enter your github personal access token here
 ```
 
-This will create a GKE cluster, deploy Gitlab, and hook up an intentionally broken [flux](https://fluxcd.io/) with corresponding gcp custom logging metric and alert policy that contains instructions on how to fix the "problem". Once operational, flux will hook up to this forked Github repo and deploy any kubernetes resource definitons or helmreleses contained under `/releases`. This is intended to give people insight into what a montioring as code ecosystem looks like.
+This will create a GKE cluster, deploy Gitlab, and hook up an intentionally broken [flux](https://fluxcd.io/) with corresponding gcp custom logging metric and alert policy that contains instructions on how to fix the "problem". Once operational, flux will hook up to this forked Github repo and deploy any kubernetes resource definitons or helmreleses contained under `/mac-ecosystem/releases`. This is intended to give people insight into what a montioring as code ecosystem looks like.
+
+#### Resources Deployed By Flux
+- example hello world app
+- cert-manager
+- kube-prometheus-stack
 
 **Please Note:** you will be expected to provide a [Github Persional Access Token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) - so have one handy.
 
@@ -60,14 +66,14 @@ This will create a GKE cluster, deploy Gitlab, and hook up an intentionally brok
 Gitlab is deployed by helm chart during the setup process above. Configuration changes can be made to the values.yaml file under `/mac-ecosystem/templates/values-files/gitlab-values.yaml.tpl`. For information on supported settings refer to this [documentation](https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/values.yaml)
 
 Once changes have been made to `/mac-ecosystem/templates/values-files/gitlab-values.yaml.tpl`, sync the changes by re-running:
-```bash 
+```bash
 # this will sync settings to the cluster, including Gitlab changes
 ./setup.sh
 ```
 
 
 ### Deploying New Kubernetes  Resources / HelmRelease Using Flux & Helm-Operator
-In order to update/create a new [HelmRelease](https://docs.fluxcd.io/projects/helm-operator/en/1.0.0-rc9/references/helmrelease-custom-resource.html), or deploy Kubernetes resources (namespace/deployment/pod/etc), a resource definition will need to be placed under the `/releases` directory at the root of this repository. Once merged to main/master, flux will automatically sync the changes with the GKE cluster on a 1 minute sync loop.
+In order to update/create a new [HelmRelease](https://docs.fluxcd.io/projects/helm-operator/en/1.0.0-rc9/references/helmrelease-custom-resource.html), or deploy Kubernetes resources (namespace/deployment/pod/etc), a resource definition will need to be placed under the `/mac-ecosystem/releases` directory at the root of this repository. Once merged to main/master, flux will automatically sync the changes with the GKE cluster on a 1 minute sync loop.
 
 ___
 
