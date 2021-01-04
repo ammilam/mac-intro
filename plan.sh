@@ -6,6 +6,7 @@ echo "Note! This will take some time to deploy and gitlab takes time to complete
 echo "Prepare to be wating at least 30 minutes from start to finish."
 sleep 2
 echo ""
+terraform state pull> terraform.tfstate
 
 # sets git specific variables
 export URL="$(git config --get remote.origin.url)"
