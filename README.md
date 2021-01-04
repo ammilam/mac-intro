@@ -4,7 +4,7 @@
 This repo attempts to lay a general framework to play with a MaC implementation, as well as a kubernetes Gitops implementation, and is broken down into the following parts...
 
 - GKE (Google Kubernetes Engine) Cluster Creation by Terraform
-- Installation of Gitlab in GKE using  the [terraform-google-gke-gitlab](https://github.com/terraform-google-modules/terraform-google-gke-gitlab) module
+- Installation of Gitlab in GKE using a heavily modified version of the [terraform-google-gke-gitlab](https://github.com/terraform-google-modules/terraform-google-gke-gitlab) module
 - Installation of flux/helm-operator to implement k8s Gitops
 - Flux automated deployment of prometheus-stack (prometheus/alertmanager/grafana) and other k8s resources
 - Grafana Dashboarding/Alerts/Notifiers as Code Implementation
