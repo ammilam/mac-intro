@@ -603,8 +603,8 @@ grafana:
     ## TLS configuration for grafana Ingress
     ## Secret must be manually created in the namespace
     ##
-    tls:
-      - secretName: grafana-general-tls
+    # tls:
+    #   - secretName: grafana-general-tls
     #   hosts:
     #   - grafana.example.com
 
