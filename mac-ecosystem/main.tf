@@ -146,6 +146,17 @@ resource "google_service_networking_connection" "private_vpc_connection" {
   depends_on              = [module.project_services]
 }
 
+# creates nginx external IP
+resource "google_compute_address" "nginx" {
+  name         = var.nginx_address_name
+  project      = module.project_services.project_id
+  region       = var.region
+  address_type = "EXTERNAL"
+  description  = "Nginx Ingress IP"
+  depends_on   = [module.project_services]
+}
+
+
 resource "google_sql_database_instance" "gitlab_db" {
   depends_on          = [google_service_networking_connection.private_vpc_connection, module.project_services]
   name                = local.gitlab_db_name
@@ -642,17 +653,6 @@ resource "helm_release" "ingress_nginx" {
     google_compute_address.nginx,
     data.template_file.ingress_nginx,
   ]
-}
-
-
-# creates nginx external IP
-resource "google_compute_address" "nginx" {
-  name         = var.nginx_address_name
-  project      = module.project_services.project_id
-  region       = var.region
-  address_type = "EXTERNAL"
-  description  = "Nginx Ingress IP"
-  depends_on   = [module.project_services]
 }
 
 # creates monitoring namespace
