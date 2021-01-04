@@ -577,13 +577,13 @@ grafana:
   ingress:
     ## If true, Grafana Ingress will be created
     ##
-    enabled: false
+    enabled: true
 
     ## Annotations for Grafana Ingress
     ##
     annotations:
       kubernetes.io/ingress.class: nginx
-      kubernetes.io/tls-acme: "true"
+      kubernetes.io/tls-acme: "false"
 
     ## Labels to be added to the Ingress
     ##
@@ -604,7 +604,7 @@ grafana:
     ## Secret must be manually created in the namespace
     ##
     tls:
-    - secretName: grafana-general-tls
+      - secretName: grafana-general-tls
     #   hosts:
     #   - grafana.example.com
 
