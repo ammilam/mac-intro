@@ -58,7 +58,7 @@ Enter a github personal access token: # enter your github personal access token 
 
 Error: failed to render : <template_file>:692,23-30: Unknown variable; There is no variable named "NGINXIP".
 
-  on mac-ecosystem/main.tf line 452, in data "template_file" "ingress_nginx":
+ on mac-ecosystem/main.tf line 452, in data "template_file" "ingress_nginx":
  452: data "template_file" "ingress_nginx" {
 ```
 
