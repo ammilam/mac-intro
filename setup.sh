@@ -72,7 +72,7 @@ if [[ -z $TOKEN ]]
 then
     # prompts for github personal access token
     read -p "Enter a github personal access token: " TOKEN
-    echo $TOKEN >> token
+    echo $TOKEN > token
 fi
 
 
@@ -103,7 +103,6 @@ then
 fi
 
 
-
 ##################################################
 ##### Service Account Creation For Terraform #####
 ##################################################
@@ -116,12 +115,12 @@ then
 fi
 
 gcloud projects add-iam-policy-binding $PROJECT --member="user:${GCP_USER}" --role="roles/owner"
+gcloud projects add-iam-policy-binding $PROJECT --member="user:${GCP_USER}" --role="roles/storage.admin"
 gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${SA_NAME}@${PROJECT}.iam.gserviceaccount.com" --role="roles/owner"
 
-
-if [[ ! -f "${SA_NAME}.json" ]]
+if [[ ! -f "account.json" ]]
 then
-    gcloud iam service-accounts keys create ./"${SA_NAME}.json" --iam-account "${SA_NAME}@${PROJECT}.iam.gserviceaccount.com"
+    gcloud iam service-accounts keys create ./"account.json" --iam-account "${SA_NAME}@${PROJECT}.iam.gserviceaccount.com"
 fi
 
 ###############################################
@@ -129,6 +128,24 @@ fi
 ###############################################
 
 export GOOGLE_APPLICATION_CREDENTIALS="${SA_NAME}.json"
+
+##################################################
+##### Terraform Remote State Bucket Creation #####
+##################################################
+echo "
+terraform {
+  backend "\"gcs\""{
+    bucket      = "\"${PROJECT}-terraform-state\""
+    prefix      = "\"sandbox\""
+    credentials = "\"account.json\""
+  }
+}
+" > backend.tf
+
+if [[ -z $(gsutil ls|grep $PROJECT-terraform-state) ]]
+then 
+    gsutil mb gs://$PROJECT-terraform-state
+fi
 
 ##########################################
 ##### Terraform Apply With Variables #####
@@ -139,13 +156,14 @@ terraform init
 sleep 5
 terraform apply -var "google_credentials=${GOOGLE_APPLICATION_CREDENTIALS}" -var "repo=${REPO}" -var "github_token=${TOKEN}" -var "username=${USERNAME}" -var "email_address=${EMAIL}" -var "cluster_name=${NAME}" -var "project_id=${PROJECT}" -auto-approve
 sleep 5
-
+terraform state pull> terraform.tfstate
 
 ##################################################
 ##### Sets Kubernetes Context To GKE CLuster #####
 ##################################################
 
-export REGION=$(cat terraform.tfstate|jq -r '.outputs.location.value')
+export REGION=$(terraform output location)
+echo ""
 echo "Getting kubeconfig for the GKE cluster..."
 echo ""
 sleep 2

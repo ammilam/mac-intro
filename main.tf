@@ -1,15 +1,16 @@
 provider "google" {
-  project = var.project_id
-  credentials = file(
-    "${path.module}/${var.google_credentials}"
-  )
+  project     = var.project_id
+  credentials = data.local_file.credentials.content
 }
 
 provider "google-beta" {
   project = var.project_id
-  credentials = file(
-    "${path.module}/${var.google_credentials}"
-  )
+  credentials = data.local_file.credentials.content
+}
+
+
+data "local_file" "credentials" {
+  filename = "${path.module}/${var.google_credentials}"
 }
 
 provider "github" {
