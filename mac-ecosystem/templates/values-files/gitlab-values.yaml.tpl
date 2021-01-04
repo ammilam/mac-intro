@@ -3,7 +3,7 @@ global:
   edition: ce
   hosts:
     domain: ${DOMAIN}
-    https: false
+    https: true
     gitlab: {}
     externalIP: ${INGRESS_IP}
     ssh: ~

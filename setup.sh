@@ -124,21 +124,21 @@ fi
 ##### Abstracting Existing Cluster Name From Terraform State #####
 ##################################################################
 # checks if terraform state file exists, if it does - sets the cluster_name to the output in the state file
-
 terraform init
-terraform fmt --recursive
 
 if [[ ! -f terraform.tfstate ]]
 then
-    if [[ $(terraform output cluster_name) == *"The state file either has no outputs defined"* ]];
-    then read -p "Enter a cluster name: " NAME
+    if [[ $(terraform state pull|jq '.resources') == "[]" ]]
+    then 
+        read -p "Enter a cluster name: " NAME
     fi
 fi
 
 if [[ ! -f terraform.tfstate ]]
 then
-    if [[ $(terraform output cluster_name) != *"The state file either has no outputs defined"* ]];
+    if [[ $(terraform output cluster_name) ]];
     then export NAME=$(terraform output cluster_name)
+    echo ""
         echo "Your existing cluster is called $NAME"
         echo ""
         sleep 2
@@ -159,11 +159,13 @@ then
     fi
 fi
 
+
 ##########################################
 ##### Terraform Apply With Variables #####
 ##########################################
 echo ""
 sleep 5
+terraform fmt --recursive
 terraform apply -var "google_credentials=${GOOGLE_APPLICATION_CREDENTIALS}" -var "repo=${REPO}" -var "github_token=${TOKEN}" -var "username=${USERNAME}" -var "email_address=${EMAIL}" -var "cluster_name=${NAME}" -var "project_id=${PROJECT}" -auto-approve
 sleep 5
 terraform state pull > terraform.tfstate
