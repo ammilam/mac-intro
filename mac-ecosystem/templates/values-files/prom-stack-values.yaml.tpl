@@ -577,7 +577,7 @@ grafana:
   ingress:
     ## If true, Grafana Ingress will be created
     ##
-    enabled: true
+    enabled: false
 
     ## Annotations for Grafana Ingress
     ##
@@ -598,7 +598,7 @@ grafana:
     #   - ${NGINXIP}
 
     ## Path for grafana ingress
-    path: /grafana
+    #path: /
 
     ## TLS configuration for grafana Ingress
     ## Secret must be manually created in the namespace
