@@ -14,7 +14,7 @@ for d in $(gcloud compute disks list|awk 'NR>1 {print $1 $2}'); do gcloud comput
 read -p 'Do you want to delete the Service Account json? ' p
 if [[ $p == 'y' ]]
 then 
-    rm $SA_NAME
+    rm ./$SA_NAME
 fi
 if [[ $p == 'n' ]]
 then 

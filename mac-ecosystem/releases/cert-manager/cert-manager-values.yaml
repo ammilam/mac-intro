@@ -7,9 +7,9 @@ metadata:
 spec:
   releaseName: cert-manager
   chart:
-    repository: https://artifactory.davita.com/artifactory/davita-helm
+    repository: https://charts.jetstack.io
     name: cert-manager
-    version: v0.15.1
+    version: 1.1.0
   values:
       # Default values for cert-manager.
       # This is a YAML-formatted file.
