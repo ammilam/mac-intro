@@ -580,6 +580,7 @@ grafana:
     enabled: true
 
     ## Annotations for Grafana Ingress
+    
     ##
     annotations:
       kubernetes.io/ingress.class: nginx

@@ -1,0 +1,16 @@
+git:
+  url: ssh://git@github.com/ammilam/mac-intro.git
+  path: mac-ecosystem/releases
+  pollInterval: 1m
+  user: ammilam
+  email: andrewmichaelmilam@gmail.com
+  secretName: flux-ssh
+  label: flux
+  branch: main
+sync:
+  state: git
+  timeout: 1m
+registry:
+  disableScanning: true
+syncGarbageCollection:
+  enabled: true
