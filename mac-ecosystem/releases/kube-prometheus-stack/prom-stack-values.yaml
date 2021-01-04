@@ -596,8 +596,8 @@ spec:
         ##
         annotations:
           kubernetes.io/ingress.class: nginx
-          kubernetes.io/tls-acme: "true"
-          cert-manager.io/issuer: ca-issuer
+          kubernetes.io/tls-acme: true
+          cert-manager.io/cluster-issuer: letsencrypt-prod
         ## Labels to be added to the Ingress
         ##
         labels: {}
