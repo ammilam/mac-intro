@@ -596,7 +596,8 @@ spec:
         ##
         annotations:
           kubernetes.io/ingress.class: nginx
-          kubernetes.io/tls-acme: "false"
+          kubernetes.io/tls-acme: "true"
+          cert-manager.io/issuer: "selfsigned-issuer"
         ## Labels to be added to the Ingress
         ##
         labels: {}
@@ -615,8 +616,8 @@ spec:
         ## TLS configuration for grafana Ingress
         ## Secret must be manually created in the namespace
         ##
-        tls: []
-        # - secretName: grafana-general-tls
+        tls:
+        - secretName: grafana-general-tls
         #   hosts:
         #   - grafana.example.com
 
