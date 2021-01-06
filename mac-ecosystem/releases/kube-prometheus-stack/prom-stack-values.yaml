@@ -596,8 +596,12 @@ spec:
         ##
         annotations:
           kubernetes.io/ingress.class: nginx
-          kubernetes.io/tls-acme: "true"
-          cert-manager.io/cluster-issuer: "letsencrypt-prod"
+          kubernetes.io/tls-acme: true
+          cert-manager.io/cluster-issuer: letsencrypt-prod
+          cert-manager.io/alt-names: grafana.andrewmilam.com
+          cert-manager.io/certificate-name: grafana-general-tls
+          cert-manager.io/common-name: grafana.andrewmilam.com
+          cert-manager.io/issuer-kind: ClusterIssuer
         ## Labels to be added to the Ingress
         ##
         labels: {}
