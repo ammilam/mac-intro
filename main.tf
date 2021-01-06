@@ -38,6 +38,7 @@ module "mac-ecosystem" {
   google_credentials    = var.google_credentials
 }
 
+
 ######################
 ### GCP Monitoring ###
 ######################
@@ -47,4 +48,5 @@ module "monitoring" {
   email_address         = var.email_address
   gke_project_id        = var.project_id
   monitoring_project_id = var.project_id
+  google_credentials    = data.local_file.credentials.content
 }

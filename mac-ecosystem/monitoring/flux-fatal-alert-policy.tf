@@ -33,7 +33,7 @@ resource "google_monitoring_alert_policy" "flux_fatal_alert_policy" {
   notification_channels = [google_monitoring_notification_channel.emails.name]
   depends_on = [
     google_logging_metric.gke_flux_fatal_metric,
-    time_sleep.wait_for_logging_metric
+    time_sleep.wait_for_logging_metric,
   ]
 }
 
@@ -49,4 +49,5 @@ resource "google_monitoring_notification_channel" "emails" {
   labels = {
     email_address = var.email_address
   }
+
 }

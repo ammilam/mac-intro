@@ -17,12 +17,13 @@ while IFS="|" read -r name zone; do
 echo name=$name zone=$(echo $zone|awk '{print $NF}' FS=/)
 gcloud compute disks delete $(echo $name|grep $NAME) --zone=$(echo $zone|awk '{print $NF}' FS=/)
 done
-
+rm -rf .terraform
 read -p 'Do you want to delete the Service Account json? ' p
 if [[ $p == 'y' ]]
 then
     rm ./$SA_NAME
 fi
+
 if [[ $p == 'n' ]]
 then
     exit 1

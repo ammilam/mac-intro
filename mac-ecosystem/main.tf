@@ -438,7 +438,7 @@ data "template_file" "ingress_nginx" {
   }
   depends_on = [
     google_compute_address.nginx
-    ]
+  ]
 }
 data "template_file" "get_dashboards" {
   template = file("${path.module}/templates/scripts/get-dashboard.sh.tpl")
@@ -447,8 +447,8 @@ data "template_file" "get_dashboards" {
   }
   depends_on = [
     google_compute_address.nginx,
-  time_sleep.nginx_helm,
-  data.template_file.ingress_nginx
+    time_sleep.nginx_helm,
+    data.template_file.ingress_nginx
   ]
 }
 

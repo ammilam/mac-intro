@@ -4,9 +4,9 @@ git:
   pollInterval: 1m
   user: ${USERNAME}
   email: ${EMAIL}
-  secretName: flux-ss
+  secretName: flux-ssh
   label: flux
-  branch: main
+  branch: test-branch
 sync:
   state: git
   timeout: 1m
