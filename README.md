@@ -30,16 +30,16 @@ Note: I recommend running this through Cloud Shell from within GCP as mentioned 
 ### Setting Up GKE / Gitlab / Flux / Helm Operator
 
 1. Fork and clone down this repository
-2. Get a github [personal access token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) with the `repo` scope selected
-3. Create a new gcp project in [Cloud Console](https://console.cloud.google.com/) - [Documentation](https://cloud.google.com/resource-manager/docs/creating-managing-projects)
-4. Set your gcloud config by running `gcloud config set project GCP_PROJECT_ID` - replace GCP_PROJECT_ID with the newly created GCP project's project id.
-5. Enable the Monitoring Workspace by doing the following
+2. If you haven't already, [sign up for a GCP trial](https://cloud.google.com/free/?utm_source=google&utm_medium=cpc&utm_campaign=na-US-all-en-dr-bkws-all-all-trial-b-dr-1009135&utm_content=text-ad-lpsitelinkPexp1-any-DEV_c-CRE_427385369887-ADGP_Hybrid%20%7C%20AW%20SEM%20%7C%20BKWS%20%7C%20US%20%7C%20en%20%7C%20BMM%20~%20UX%20Test%20~%20gcp-KWID_43700044772255389-kwd-20903505266&utm_term=KW_%2Bgcp-ST_%2Bgcp&gclid=EAIaIQobChMIht6shbiD7gIVRdbACh02aQAlEAAYASABEgKjffD_BwE)
+3. Get a github [personal access token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) with the `repo` scope selected
+4. Create a new gcp project in [Cloud Console](https://console.cloud.google.com/) - [Documentation](https://cloud.google.com/resource-manager/docs/creating-managing-projects)
+5. Set your gcloud config by running `gcloud config set project GCP_PROJECT_ID` - replace GCP_PROJECT_ID with the newly created GCP project's project id.
+6. Enable the Monitoring Workspace by doing the following
     1. Go to the [Cloud Console](https://console.cloud.google.com/)
     2. In the toolbar, select your Google Cloud project by using the project selector.
     3. In the Cloud Console navigation menu, click Monitoring.
-
     **note:** At this time Google doesnt offer a way to easily enable the montioring workspace using terraform or the api, so this part is manual)
-6. Execute the following in the repo cloned locally
+7. Execute the following in the repo cloned locally
 
 ```bash
 # configure git user variables (enter your name and the account associated with github)

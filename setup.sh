@@ -21,7 +21,6 @@ echo ""
 echo "This will deploy a gke cluster with gitlab, an intentionally broken flux, prometheus stack, helm operator, and gcp logging/monitoring/alerts."
 echo "The gcp alert created will instruct you on how to resolve the broken flux and is intended to demonstrate monitoring as code functionality."
 sleep 2
-echo ""
 
 # sets git specific variables
 export URL="$(git config --get remote.origin.url)"
@@ -68,13 +67,24 @@ then
     gcloud iam service-accounts create $SA_NAME
 fi
 
+BILLINGACCT=$(gcloud alpha billing accounts list|awk 'NR>1 {print $1}')
+gcloud beta billing projects link $PROJECT --billing-account=$BILLINGACCT
+
 gcloud projects add-iam-policy-binding $PROJECT --member="user:${GCP_USER}" --role="roles/owner"
 gcloud projects add-iam-policy-binding $PROJECT --member="user:${GCP_USER}" --role="roles/iam.serviceAccountTokenCreator"
 gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${SA_NAME}@${PROJECT}.iam.gserviceaccount.com" --role="roles/owner"
 gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${SA_NAME}@${PROJECT}.iam.gserviceaccount.com" --role="roles/storage.admin"
 gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${SA_NAME}@${PROJECT}.iam.gserviceaccount.com" --role="roles/storage.objectAdmin"
-gcloud iam service-accounts keys create ./"account.json" --iam-account "${SA_NAME}@${PROJECT}.iam.gserviceaccount.com"
+if [[ ! -f account.json ]]
+then
+    gcloud iam service-accounts keys create ./"account.json" --iam-account "${SA_NAME}@${PROJECT}.iam.gserviceaccount.com"
+fi
+terraform init
 
+if [[ -z $(gsutil ls|grep $PROJECT-terraform-state) ]]
+then
+    gsutil mb gs://$PROJECT-terraform-state
+fi
 
 ###############################################
 ##### Sets Google Application Credentials #####
@@ -95,16 +105,11 @@ terraform {
 }
 " > backend.tf
 
-if [[ -z $(gsutil ls|grep $PROJECT-terraform-state) ]]
-then
-    gsutil mb gs://$PROJECT-terraform-state
-fi
 
 ##################################################################
 ##### Abstracting Existing Cluster Name From Terraform State #####
 ##################################################################
 # checks if terraform state file exists, if it does - sets the cluster_name to the output in the state file
-terraform init
 
 echo "checking if a local copy of terraform.tfstate exists"
 echo ""
@@ -119,7 +124,7 @@ fi
 
 if [[ ! -f terraform.tfstate ]]
 then
-    if [[ $(terraform output cluster_name) ]];
+    if [[ $(terraform output cluster_name) ]]
     then export NAME=$(terraform output cluster_name)
     echo ""
         echo "Your existing cluster is called $NAME"
@@ -148,6 +153,7 @@ fi
 ##########################################
 echo ""
 sleep 5
+terraform init
 terraform fmt --recursive
 terraform apply -var "google_credentials=${GOOGLE_APPLICATION_CREDENTIALS}" -var "repo=${REPO}" -var "github_token=${TOKEN}" -var "username=${USERNAME}" -var "email_address=${EMAIL}" -var "cluster_name=${NAME}" -var "project_id=${PROJECT}" -auto-approve
 sleep 5

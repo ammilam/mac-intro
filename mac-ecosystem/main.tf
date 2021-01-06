@@ -398,7 +398,7 @@ resource "local_file" "gitlab_yaml" {
 resource "time_sleep" "sleep_for_cluster_fix_helm_6361" {
   create_duration  = "300s"
   destroy_duration = "60s"
-  depends_on       = [module.gke.endpoint, google_sql_database.gitlabhq_production]
+  depends_on       = [module.gke.endpoint, google_sql_database.gitlabhq_production, google_compute_address.nginx]
 }
 
 resource "helm_release" "gitlab" {
@@ -419,10 +419,16 @@ resource "helm_release" "gitlab" {
     time_sleep.sleep_for_cluster_fix_helm_6361,
   ]
 }
-
+resource "time_sleep" "nginx_helm" {
+  create_duration  = "120s"
+  destroy_duration = "10s"
+  depends_on = [
+    google_compute_address.nginx,
+  ]
+}
 data "google_compute_address" "nginx" {
   name       = var.nginx_address_name
-  depends_on = [module.project_services]
+  depends_on = [module.project_services, google_compute_address.nginx, time_sleep.nginx_helm]
   region     = var.region
   project    = module.project_services.project_id
 }
@@ -437,7 +443,7 @@ data "template_file" "ingress_nginx" {
     NGINXIP = local.nginx_address
   }
   depends_on = [
-    google_compute_address.nginx
+    data.google_compute_address.nginx
   ]
 }
 data "template_file" "get_dashboards" {
@@ -446,9 +452,7 @@ data "template_file" "get_dashboards" {
     NGINXIP = local.nginx_address
   }
   depends_on = [
-    google_compute_address.nginx,
-    time_sleep.nginx_helm,
-    data.template_file.ingress_nginx
+    data.google_compute_address.nginx
   ]
 }
 
@@ -463,14 +467,6 @@ data "template_file" "get_dashboards" {
 #   ]
 # }
 
-resource "time_sleep" "nginx_helm" {
-  create_duration  = "120s"
-  destroy_duration = "10s"
-  depends_on = [
-    module.gke.endpoint,
-    google_compute_address.nginx,
-  ]
-}
 
 # resource "local_file" "prom_stack_yaml" {
 #   content  = data.template_file.ingress_nginx.rendered

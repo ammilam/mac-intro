@@ -14,3 +14,7 @@ variable "username" {
 variable "email_address" {
   type = string
 }
+
+variable "google_credentials" {
+  type = string
+}
