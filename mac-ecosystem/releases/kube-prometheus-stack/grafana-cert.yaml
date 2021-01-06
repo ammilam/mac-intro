@@ -3,4 +3,15 @@ kind: Certificate
 metadata:
   name: grafana
   namespace: monitoring
-spec: {}
+spec:
+  commonName: grafana.andrewmilam.com
+  dnsNames:
+  - grafana.andrewmilam.com
+  secretName: grafana-general-tls
+  duration: 2160h
+  renewBefore: 720h
+  organization:
+  - andrewmilam
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
