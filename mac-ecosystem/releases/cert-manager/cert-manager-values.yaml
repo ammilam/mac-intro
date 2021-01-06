@@ -72,7 +72,7 @@ spec:
 
       serviceAccount:
         # Specifies whether a service account should be created
-        create: false
+        create: true
         # The name of the service account to use.
         # If not set and create is true, a name is generated using the fullname template
         name: cert-manager
@@ -146,9 +146,9 @@ spec:
 
       nodeSelector: {}
 
-      ingressShim:
-        defaultIssuerName: "letsencrypt-prod"
-        defaultIssuerKind: "selfsigned-issuer"
+      ingressShim: {}
+        # defaultIssuerName: "letsencrypt-prod"
+        # defaultIssuerKind: "selfsigned-issuer"
         # defaultIssuerGroup: ""
 
       prometheus:

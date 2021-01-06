@@ -608,11 +608,11 @@ spec:
         ## Must be provided if Ingress is enable.
         ##
         hosts:
-        - grafana.andrewmilam.com
+          - grafana.andrewmilam.com
         # hosts:
         ## Path for grafana ingress
         path:
-        - /
+          - /
 
         ## TLS configuration for grafana Ingress
         ## Secret must be manually created in the namespace
@@ -620,7 +620,7 @@ spec:
         tls:
         - secretName: grafana-general-tls
           hosts:
-          - grafana.andrewmilam.com
+            - grafana.andrewmilam.com
 
       sidecar:
         dashboards:

@@ -359,7 +359,7 @@ controller:
     ##
     externalIPs: []
 
-    # loadBalancerIP: ""
+    loadBalancerIP: ${NGINXIP}
     loadBalancerSourceRanges: []
 
     enableHttp: true
@@ -405,7 +405,8 @@ controller:
     ## Annotations are mandatory for the load balancer to come up. Varies with the cloud service.
     internal:
       enabled: false
-      annotations: {}
+      annotations:
+        cloud.google.com/load-balancer-type: "Internal"
 
       # loadBalancerIP: ""
 
@@ -689,7 +690,7 @@ defaultBackend:
     ##
     externalIPs: []
 
-    loadBalancerIP: ${NGINXIP}
+    # loadBalancerIP: ""
     loadBalancerSourceRanges: []
     servicePort: 80
     type: ClusterIP
