@@ -605,8 +605,8 @@ spec:
         ## Hostnames.
         ## Must be provided if Ingress is enable.
         ##
-        # hosts:
-        #   - grafana.domain.com
+        hosts:
+        - grafana.andrewmilam.com
         # hosts:
         # - 34.68.126.206
 
@@ -618,8 +618,8 @@ spec:
         ##
         tls:
         - secretName: grafana-general-tls
-        #   hosts:
-        #   - grafana.example.com
+          hosts:
+          - grafana.andrewmilam.com
 
       sidecar:
         dashboards:
