@@ -7,7 +7,7 @@
 ##### Verifies Tool Installation #####
 ######################################
 which jq 2>&1 >/dev/null || (echo "Error, jq executable is required" && exit 1) || exit 1
-which terraform 2>&1 >/dev/null || (echo "Error, terracorm executable is required" && exit 1) || exit 1
+which terraform 2>&1 >/dev/null || (echo "Error, terraform executable is required" && exit 1) || exit 1
 which gcloud 2>&1 >/dev/null || (echo "Error, gcloud executable is required" && exit 1) || exit 1
 
 
@@ -18,8 +18,8 @@ echo ""
 export PROJECT="$(gcloud config get-value project)"
 echo "Your current configured gcloud project is $PROJECT"
 echo ""
-echo "This will deploy a gke cluster with gitlab, an intentionally broken flux, prometheus stack, helm operator, and gcp logging/monitoring/alerts."
-echo "The gcp alert created will instruct you on how to resolve the broken flux and is intended to demonstrate monitoring as code functionality."
+echo "This will deploy a gke cluster with gitlab, flux, prometheus stack, helm operator, and gcp logging/monitoring/alerts for flux."
+echo ""
 sleep 2
 echo ""
 
@@ -48,13 +48,26 @@ sleep 2
 #######################################################
 ##### Sets Github Personal Access Token Parameter #####
 #######################################################
-TOKEN=$(cat token)
-if [[ -z $TOKEN ]]
+
+if [[ ! -f token ]]
 then
     # prompts for github personal access token
     read -p "Enter a github personal access token: " TOKEN
     echo $TOKEN > token
 fi
+
+if [[ -f token && -z $(cat token) ]]
+then
+    # prompts for github personal access token
+    read -p "Enter a github personal access token: " TOKEN
+    echo $TOKEN > token
+fi
+
+if [[ -f token && ! -z $(cat token) ]]
+then
+    TOKEN=$(cat token)
+fi
+
 
 
 ##################################################
